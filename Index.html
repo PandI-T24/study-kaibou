@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同時ランダムセレクター（個別終了対応）</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f3f4f6;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 360px;
+        }
+        
+        /* モード設定エリア */
+        .mode-settings {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .mode-settings input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* 上と下の表示エリア */
+        .display-box {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .upper-section {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+        .lower-section {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        
+        /* 終了した箱の見た目（グレーダウン） */
+        .display-box.finished {
+            background-color: #e5e7eb;
+            border-color: #d1d5db;
+            opacity: 0.6;
+        }
+        
+        .label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .result-text {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #111827;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 抽選ボタン */
+        .draw-btn {
+            width: 100%;
+            font-size: 1.3rem;
+            padding: 16px;
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            transition: background 0.2s;
+        }
+        .draw-btn:hover {
+            background-color: #4338ca;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- チェックボックスのエリア -->
+    <div class="mode-settings">
+        <input type="checkbox" id="test-mode" onchange="toggleMode()">
+        <label for="test-mode">重複なし（テストモード）</label>
+    </div>
+
+    <!-- 上の表示枠 -->
+    <div id="upper-box-element" class="display-box upper-section">
+        <div id="upper-label" class="label">上肢筋</div>
+        <div id="upper-result" class="result-text">？？？</div>
+    </div>
+
+    <!-- 下の表示枠 -->
+    <div id="lower-box-element" class="display-box lower-section">
+        <div id="lower-label" class="label">下肢筋</div>
+        <div id="lower-result" class="result-text">？？？</div>
+    </div>
+    
+    <button id="main-btn" class="draw-btn" onclick="drawAll()">実技スタート</button>
+</div>
+
+<script>
+    // --- 【マスターデータ】 ---
+    const upper_box = ["大胸筋", "小胸筋", "鎖骨下筋", "前鋸筋","僧帽筋","広背筋","肩甲挙筋","小菱形筋","大菱形筋","三角筋","棘上筋","棘下筋","小円筋","大円筋","肩甲下筋","上腕二頭筋","上腕筋","烏口腕筋","上腕三頭筋","肘筋"];
+    const lower_box = ["腸骨筋", "大腰筋", "小腰筋", "縫工筋", "大腿直筋", "外側広筋", "中間広筋", "内側広筋", "膝関節筋", "長内転筋", "短内転筋", "薄筋", "恥骨筋", "大内転筋", "大殿筋", "中殿筋", "小殿筋", "大腿筋膜張筋", "梨状筋", "上双子筋", "下双子筋", "内閉鎖筋", "大腿方形筋", "外閉鎖筋", "半腱様筋", "半膜様筋", "大腿二頭筋(長頭:短頭)"];
+
+    // 作業用の箱
+    let remaining_upper = [...upper_box];
+    let remaining_lower = [...lower_box];
+
+    // モード切り替え時のリセット処理
+    function toggleMode() {
+        remaining_upper = [...upper_box];
+        remaining_lower = [...lower_box];
+        
+        document.getElementById('upper-label').innerText = "上肢筋";
+        document.getElementById('lower-label').innerText = "下肢筋";
+        document.getElementById('upper-result').innerText = "？？？";
+        document.getElementById('lower-result').innerText = "？？？";
+        
+        // グレーダウンの見た目を解除
+        document.getElementById('upper-box-element').classList.remove('finished');
+        document.getElementById('lower-box-element').classList.remove('finished');
+        
+        document.getElementById('main-btn').innerText = "実技スタート";
+        document.getElementById('main-btn').disabled = false;
+    }
+
+    function drawAll() {
+        const isTestMode = document.getElementById('test-mode').checked;
+
+        if (isTestMode) {
+            // 【テストモード（重複なし）】
+            
+            // 両方とも空っぽなら完全に終了
+            if (remaining_upper.length === 0 && remaining_lower.length === 0) {
+                document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
+                document.getElementById('main-btn').disabled = true;
+                return;
+            }
+
+            // --- 上肢筋の抽選 ---
+            if (remaining_upper.length > 0) {
+                const upIndex = Math.floor(Math.random() * remaining_upper.length);
+                const upperFinal = remaining_upper.splice(upIndex, 1)[0];
+                document.getElementById('upper-result').innerText = upperFinal;
+                document.getElementById('upper-label').innerText = `上肢筋（残り ${remaining_upper.length}）`;
+            } else {
+                // 上肢筋がなくなったら「終了」にして見た目をグレーにする
+                document.getElementById('upper-result').innerText = "全問終了！";
+                document.getElementById('upper-box-element').classList.add('finished');
+            }
+
+            // --- 下肢筋の抽選 ---
+            if (remaining_lower.length > 0) {
+                const lowIndex = Math.floor(Math.random() * remaining_lower.length);
+                const lowerFinal = remaining_lower.splice(lowIndex, 1)[0];
+                document.getElementById('lower-result').innerText = lowerFinal;
+                document.getElementById('lower-label').innerText = `下肢筋（残り ${remaining_lower.length}）`;
+            } else {
+                // 下肢筋がなくなったら「終了」にして見た目をグレーにする
+                document.getElementById('lower-result').innerText = "全問終了！";
+                document.getElementById('lower-box-element').classList.add('finished');
+            }
+
+        } else {
+            // 【通常モード（何回でも重複する）】
+            const upperIndex = Math.floor(Math.random() * upper_box.length);
+            const upperFinal = upper_box[upperIndex];
+
+            const lowerIndex = Math.floor(Math.random() * lower_box.length);
+            const lowerFinal = lower_box[lowerIndex];
+
+            document.getElementById('upper-result').innerText = upperFinal;
+            document.getElementById('lower-result').innerText = lowerFinal;
+        }
+    }
+</script>
+
+</body>
+</html>
