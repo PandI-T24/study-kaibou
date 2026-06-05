@@ -10,9 +10,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            justify-content: flex-start;
+            min-height: 100vh;
             margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
             background-color: #f3f4f6;
         }
         .container {
@@ -22,6 +24,7 @@
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             width: 360px;
+            margin-bottom: 30px;
         }
 
         /* モード設定エリア */
@@ -73,6 +76,8 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
+
+        /* 筋肉名が表示されるエリア */
         .result-text {
             font-size: 1.6rem;
             font-weight: bold;
@@ -81,6 +86,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .result-text:active {
+            background-color: rgba(0, 0, 0, 0.05);
         }
 
         /* 抽選ボタン */
@@ -101,52 +113,333 @@
         .draw-btn:hover {
             background-color: #4338ca;
         }
+
+        /* --- カード一覧セクションのスタイル --- */
+        .card-section-toggle {
+            width: 360px;
+            padding: 12px;
+            background-color: #4b5563;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+        .card-section-toggle:hover {
+            background-color: #374151;
+        }
+
+        .card-container {
+            width: 100%;
+            max-width: 900px;
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .card-container.show {
+            display: block;
+        }
+        
+        /* 見出しと一括操作ボタンのレイアウト */
+        .card-header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0 10px 0;
+            padding-bottom: 5px;
+        }
+        .card-subtitle {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .upper-title { color: #1d4ed8; }
+        .lower-title { color: #b91c1c; }
+        
+        .bulk-btn {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            background-color: #e5e7eb;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .bulk-btn:hover {
+            background-color: #d1d5db;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+            border-top: 2px solid #f3f4f6;
+            padding-top: 10px;
+        }
+        
+        /* 筋肉カード（レイアウト調整） */
+        .muscle-card {
+            padding: 12px 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 45px;
+            box-sizing: border-box;
+        }
+        /* チェックが外れたカードは薄くする */
+        .muscle-card.disabled {
+            opacity: 0.5;
+            background-color: #f3f4f6 !important;
+            border-color: #e5e7eb !important;
+            color: #9ca3af !important;
+        }
+        .muscle-card .card-click-area {
+            flex-grow: 1;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .muscle-card input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .muscle-card:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .upper-card { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
+        .lower-card { background-color: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+
+        /* --- モーダル（ポップアップメモ）のスタイル --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: left;
+        }
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 6px;
+        }
+        .modal-body {
+            font-size: 0.95rem;
+            color: #374151;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+        .modal-close-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-close-btn:hover {
+            background-color: #4b5563;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- チェックボックスのエリア -->
     <div class="mode-settings">
         <input type="checkbox" id="test-mode" onchange="toggleMode()">
-        <label for="test-mode">重複なし（テストモード）</label>
+        <label for="test-mode">重複なし</label>
     </div>
 
-    <!-- 上の表示枠 -->
     <div id="upper-box-element" class="display-box upper-section">
         <div id="upper-label" class="label">上肢筋</div>
-        <div id="upper-result" class="result-text">？？？</div>
+        <div id="upper-result" class="result-text" onclick="showMemo('upper')">？？？</div>
     </div>
 
-    <!-- 下の表示枠 -->
     <div id="lower-box-element" class="display-box lower-section">
         <div id="lower-label" class="label">下肢筋</div>
-        <div id="lower-result" class="result-text">？？？</div>
+        <div id="lower-result" class="result-text" onclick="showMemo('lower')">？？？</div>
     </div>
 
     <button id="main-btn" class="draw-btn" onclick="drawAll()">実技スタート</button>
 </div>
 
+<button class="card-section-toggle" onclick="toggleCardSection()">カード一覧を表示</button>
+
+<div id="card-section" class="card-container">
+    <div class="card-header-wrap">
+        <div class="card-subtitle upper-title">上肢筋 一覧</div>
+        <button class="bulk-btn" onclick="bulkToggle('upper')">全選択/解除</button>
+    </div>
+    <div id="upper-card-grid" class="card-grid"></div>
+
+    <div class="card-header-wrap">
+        <div class="card-subtitle lower-title">下肢筋 一覧</div>
+        <button class="bulk-btn" onclick="bulkToggle('lower')">全選択/解除</button>
+    </div>
+    <div id="lower-card-grid" class="card-grid"></div>
+</div>
+
+<div id="memo-modal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div id="modal-muscle-name" class="modal-title">筋肉名</div>
+        <div id="modal-muscle-memo" class="modal-body">ここに起始・停止などのメモが表示されます。</div>
+        <button class="modal-close-btn" onclick="closeModal()">閉じる</button>
+    </div>
+</div>
+
 <script>
-    // --- 【マスターデータ】 ---
-    const upper_box = ["大胸筋", "小胸筋", "鎖骨下筋", "前鋸筋","僧帽筋","広背筋","肩甲挙筋","小菱形筋","大菱形筋","三角筋","棘上筋","棘下筋","小円筋","大円筋","肩甲下筋","上腕二頭筋","上腕筋","烏口腕筋","上腕三頭筋","肘筋","円回内筋","橈側手根屈筋","長掌筋","尺側手根屈筋"];
-    const lower_box = ["腸骨筋", "大腰筋", "小腰筋", "縫工筋", "大腿直筋", "外側広筋", "中間広筋", "内側広筋", "膝関節筋", "長内転筋", "短内転筋", "薄筋", "恥骨筋", "大内転筋", "大殿筋", "中殿筋", "小殿筋", "大腿筋膜張筋", "梨状筋", "上双子筋", "下双子筋", "内閉鎖筋", "大腿方形筋", "外閉鎖筋", "半腱様筋", "半膜様筋", "大腿二頭筋(長頭:短頭)","前脛骨筋","長趾伸筋","長母趾伸筋","第3腓骨筋"];
+   const upper_box = [
+        { name: "大胸筋", memo: "【起始】鎖骨部：鎖骨の内側1/2、胸肋部：胸骨，第1～7肋軟骨、腹部：腹直筋鞘の前葉\n【停止】上腕骨の大結節稜\n【支配神経】内側・外側胸筋神経（C5～T1）\n【作用】肩関節の屈曲・内転・内旋，努力性吸気" },
+        { name: "小胸筋", memo: "【起始】第3～5肋骨\n【停止】肩甲骨の烏口突起\n【支配神経】内側・外側胸筋神経（C6～T1）\n【作用】肩甲骨の下制・下方回旋" },
+        { name: "鎖骨下筋", memo: "【起始】第1肋骨とその軟骨部\n【停止】鎖骨の外側1/3の下面\n【支配神経】鎖骨下筋神経（C5・6）\n【作用】鎖骨の下制" },
+        { name: "前鋸筋", memo: "【起始】第1～9肋骨の外側面\n【停止】肩甲骨の上角・内側縁・下角\n【支配神経】長胸神経（C5～7）\n【作用】肩甲骨の外転・上方回旋" },
+        { name: "僧帽筋", memo: "【起始】後頭骨の上項線の内側1/3と外後頭隆起，項靭帯，第7頸椎・第1～12胸椎の棘突起，棘上靭帯\n【停止】鎖骨の外側1/3，肩甲骨の肩峰・肩甲棘\n【支配神経】副神経，頸神経（C2～4）\n【作用】上部（下行部）：肩甲骨の内転・挙上・上方回旋、中部（水平部）：肩甲骨の内転、下部（上行部）：肩甲骨の内転・下制・上方回旋" },
+        { name: "広背筋", memo: "【起始】胸腰筋膜を介して第7～12胸椎，第1～5腰椎の棘突起，仙骨の正中仙骨稜，下位の肋骨，腸骨稜，肩甲骨の下角\n【停止】上腕骨の小結節稜\n【支配神経】胸背神経（C6～8）\n【作用】肩関節の伸展・内転・内旋" },
+        { name: "肩甲挙筋", memo: "【起始】第1～4頸椎の横突起の後結節\n【停止】肩甲骨の上角\n【支配神経】肩甲背神経（C5）と頸神経（C3・4）\n【作用】肩甲骨の挙上・下方回旋" },
+        { name: "小菱形筋", memo: "【起始】第7頸椎・第1胸椎の棘突起，項靭帯\n【停止】肩甲骨の内側縁の中部のやや上方，肩甲棘の内側端\n【支配神経】肩甲背神経（C4・5）\n【作用】肩甲骨の内転・挙上・下方回旋" },
+        { name: "大菱形筋", memo: "【起始】第2～5胸椎の棘突起，項靭帯\n【停止】肩甲骨の内側縁の中部から下部\n【支配神経】肩甲背神経（C4・5）\n【作用】肩甲骨の内転・挙上・下方回旋" },
+        { name: "三角筋", memo: "【起始】鎖骨の外側1/3，肩甲骨の肩峰・肩甲棘の外側\n【停止】上腕骨の三角筋粗面\n【支配神経】腋窩神経（C5・6）\n【作用】前部：肩甲骨の屈曲・外転・内旋・水平屈曲、中部：肩甲骨の外転、後部：肩甲骨の伸展・外転・外旋・水平伸展" },        
+        { name: "棘上筋", memo: "【起始】肩甲骨の棘上窩\n【停止】上腕骨の大結節\n【支配神経】肩甲上神経（C4～6）\n【作用】肩関節の外転" },
+        { name: "棘下筋", memo: "【起始】肩甲骨の棘下窩\n【停止】上腕骨の大結節\n【支配神経】肩甲上神経（C5・6）\n【作用】肩関節の外旋" },
+        { name: "小円筋", memo: "【起始】肩甲骨の外側縁の背面\n【停止】上腕骨の大結節\n【支配神経】腋窩神経（C5・6）\n【作用】肩関節の外旋" },
+        { name: "大円筋", memo: "【起始】肩甲骨の下角の背面\n【停止】上腕骨の小結節稜\n【支配神経】肩甲下神経（C5・6）\n【作用】肩関節の伸展・内転・内旋" },
+        { name: "肩甲下筋", memo: "【起始】肩甲骨の肩甲下窩\n【停止】上腕骨の小結節\n【支配神経】肩甲下神経（C5・6）\n【作用】肩関節の内旋" },
+        { name: "上腕二頭筋", memo: "【起始】長頭：肩甲骨の関節上結節、短頭：肩甲骨の烏口突起\n【停止】橈骨粗面と上腕二頭筋腱膜\n【支配神経】筋皮神経（C5・6）\n【作用】肘関節の屈曲，前腕の回外，肩関節の屈曲（長頭）・内転（短頭）" },
+        { name: "上腕筋", memo: "【起始】上腕骨前面の下半，内側・外側上腕筋間中隔\n【停止】尺骨粗面\n【支配神経】筋皮神経（C5・6）\n【作用】肘関節の屈曲" },
+        { name: "烏口腕筋", memo: "【起始】肩甲骨の烏口突起\n【停止】上腕骨の内側面の中央部\n【支配神経】筋皮神経（C6・7）\n【作用】肩関節の屈曲・内転" },
+        { name: "上腕三頭筋", memo: "【起始】長頭：肩甲骨の関節下結節、外側頭：上腕骨の背面（橈骨神経溝の上外側）、内側頭：上腕骨の背面（橈骨神経溝の下内側），内側・外側上腕筋間中隔\n【停止】尺骨の肘頭\n【支配神経】橈骨神経（C6～8）\n【作用】肘関節の伸展、長頭：肩関節の伸展・内転" },
+        { name: "肘筋", memo: "【起始】上腕骨の外側上顆の背面\n【停止】尺骨の肘頭の外側面と体の背面近位部\n【支配神経】橈骨神経（C7・8）\n【作用】肘関節の伸展" },
+       { name: "円回内筋", memo: "【起始】上腕頭：上腕骨の内側上顆・内側上腕筋間中隔、尺骨頭：尺骨の鉤状突起\n【停止】橈骨の外側面（中央部の円回内筋粗面）\n【支配神経】正中神経（C6・7）\n【作用】前腕の回内、肘関節の屈曲" },
+        { name: "橈側手根屈筋", memo: "【起始】上腕骨の内側上顆、前腕筋膜\n【停止】第2・3中手骨底（掌面）\n【支配神経】正中神経（C6・7）\n【作用】手関節の掌屈（屈曲）・橈屈（外転）、肘関節の屈曲" },
+        { name: "長掌筋", memo: "【起始】上腕骨の内側上顆、前腕筋膜\n【停止】手掌腱膜\n【支配神経】正中神経（C7・8）\n【作用】手掌腱膜を緊張させる、手関節の掌屈（屈曲）、肘関節の屈曲" },
+        { name: "尺側手根屈筋", memo: "【起始】上腕頭：上腕骨の内側上顆、尺骨頭：尺骨の肘頭・後面\n【停止】豆状骨（豆鉤靭帯・豆中手靭帯を介して有鉤骨・第5中手骨底に終わる）\n【支配神経】尺骨神経（C7～T1）\n【作用】手関節の掌屈（屈曲）・尺屈（内転）" },
+        { name: "浅指屈筋", memo: "【起始】上腕尺骨頭：上腕骨の内側上顆・尺骨の鉤状突起、橈骨頭：橈骨の前面（上部斜線）\n【停止】第2～5指の中節骨（体側縁）\n【支配神経】正中神経（C7～T1）\n【作用】第2～5指のPIP関節の屈曲・MP関節の屈曲、手関節の掌屈（肘関節の屈曲）" },
+        { name: "深指屈筋", memo: "【起始】尺骨の前面・内側面、前腕骨間膜\n【停止】第2～5指の末節骨底（掌面）\n【支配神経】橈側半（第2・3指）：正中神経（前骨間神経）（C8・T1）、尺側半（第4・5指）：尺骨神経（C8・T1）\n【作用】第2～5指のDIP関節・PIP関節・MP関節の屈曲、手関節の掌屈（屈曲）" },
+        { name: "長母指屈筋", memo: "【起始】橈骨の前面、前腕骨間膜\n【停止】母指の末節骨底（掌面）\n【支配神経】正中神経（前骨間神経）（C7～T1）\n【作用】母指のIP関節・MP関節の屈曲" },
+        { name: "方形回内筋", memo: "【起始】尺骨の前面（下部1/4）\n【停止】橈骨の前面（下部1/4）\n【支配神経】正中神経（前骨間神経）（C7～T1）\n【作用】前腕の回内" }
+    ];
 
-    // 作業用の箱
-    let remaining_upper = [...upper_box];
-    let remaining_lower = [...lower_box];
+    const lower_box = [
+        { name: "腸骨筋", memo: "【起始】腸骨窩\n【停止】大腿骨の小転子\n【支配神経】大腿神経（L2～4）\n【作用】股関節の屈曲・外旋" },
+        { name: "大腰筋", memo: "【起始】第12胸椎～第5腰椎の椎体と椎間円板，すべての腰椎の横突起\n【停止】大腿骨の小転子\n【支配神経】腰神経叢の筋枝（L1～3またはL2～4）\n【作用】股関節の屈曲・外旋" },
+        { name: "小腰筋", memo: "【起始】第12胸椎・第1腰椎の椎体\n【停止】腸恥隆起，腸骨筋膜\n【支配神経】腰神経叢の筋枝（L1・2）\n【作用】骨盤の挙上" },
+        { name: "縫工筋", memo: "【起始】上前腸骨棘\n【停止】脛骨粗面の内側（鵞足）\n【支配神経】大腿神経（L2～4）\n【作用】股関節の屈曲・外転・外旋，膝関節の屈曲・内旋" },
+        { name: "大腿直筋", memo: "【起始】下前腸骨棘，臼蓋上縁\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展，股関節の屈曲" },
+        { name: "外側広筋", memo: "【起始】大腿骨の大転子・転子間線・粗線の外側唇\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展" },
+        { name: "中間広筋", memo: "【起始】大腿骨の前面・外面の上部2/3\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展" },
+        { name: "内側広筋", memo: "【起始】大腿骨の転子間線・粗線の内側唇\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展" },
+        { name: "膝関節筋", memo: "【起始】大腿骨の前面の下部\n【停止】膝関節包（滑膜組織）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展時に関節包を上方に引く" },
+        { name: "長内転筋", memo: "【起始】恥骨結節の下方\n【停止】大腿骨の粗線の内側唇の中央1/3\n【支配神経】閉鎖神経（L2～4）\n【作用】股関節の内転・屈曲・外旋" },
+        { name: "短内転筋", memo: "【起始】恥骨下枝\n【停止】大腿骨の粗線の内側唇の上部1/3\n【支配神経】閉鎖神経（L2～4）\n【作用】股関節の内転・屈曲・外旋" },
+        { name: "薄筋", memo: "【起始】恥骨下枝\n【停止】脛骨粗面の内側（鵞足）\n【支配神経】閉鎖神経（L2～4）\n【作用】股関節の内転，膝関節の屈曲・内旋" },
+        { name: "恥骨筋", memo: "【起始】恥骨櫛\n【停止】大腿骨の恥骨筋線\n【支配神経】大腿神経・閉鎖神経（L2～4）\n【作用】股関節の内転・屈曲・外旋" },
+        { name: "大内転筋", memo: "【起始】恥骨下枝，坐骨枝，坐骨結節\n【停止】大腿骨の粗線の内側唇，内転筋結節\n【支配神経】閉鎖神経と坐骨神経（L2～5）\n【作用】股関節の内転・伸展・内旋" },
+        { name: "大殿筋", memo: "【起始】腸骨翼の外面，仙骨・尾骨の背面，仙結節靭帯\n【停止】上部：腸脛靭帯，下部：大腿骨の殿筋粗面\n【支配神経】下殿神経（L5～S2）\n【作用】股関節の伸展・外旋、上部：外転、下部：内転" },
+        { name: "中殿筋", memo: "【起始】腸骨翼の外面（前・後殿筋線の間）\n【停止】大腿骨の大転子\n【支配神経】上殿神経（L4～S1）\n【作用】股関節の外転、前部：内旋・屈曲、後部：外旋・伸展" },
+        { name: "小殿筋", memo: "【起始】腸骨翼の外面（前・下殿筋線の間）\n【停止】大腿骨の大転子\n【支配神経】上殿神経（L4～S1）\n【作用】股関節の外転、前部：内旋・屈曲" },
+        { name: "大腿筋膜張筋", memo: "【起始】上前腸骨棘\n【停止】腸脛靭帯を介して脛骨の外側髁\n【支配神経】上殿神経（L4～S1）\n【作用】大腿筋膜の緊張，股関節の屈曲・外転・内旋，膝関節の伸展の維持" },
+        { name: "梨状筋", memo: "【起始】第2～4仙骨の前面\n【停止】大腿骨の大転子\n+【支配神経】仙骨神経叢の筋枝（L5～S2）\n【作用】股関節の外旋・外転（屈曲位）" },
+        { name: "上双子筋", memo: "【起始】坐骨棘\n【停止】内閉鎖筋の腱と合流して大転子窩\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋" },
+        { name: "下双子筋", memo: "【起始】坐骨結節\n【停止】内閉鎖筋の腱と合流して大転子窩\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋" },
+        { name: "内閉鎖筋", memo: "【起始】閉鎖孔の周囲（内側面），閉鎖膜\n【停止】大腿骨の大転子窩\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋" },
+        { name: "大腿方形筋", memo: "【起始】坐骨結節\n【停止】大腿骨の転子間稜\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋・内転" },
+        { name: "外閉鎖筋", memo: "【起始】閉鎖孔の周囲（外側面），閉鎖膜\n【停止】大腿骨の大転子窩\n【支配神経】閉鎖神経（L3・4）\n【作用】股関節の外旋・内転" },
+        { name: "半腱様筋", memo: "【起始】坐骨結節\n【停止】脛骨粗面の内側（鵞足）\n【支配神経】坐骨神経（L4～S2）\n【作用】膝関節の屈曲・内旋，股関節の伸展・内旋" },
+        { name: "半膜様筋", memo: "【起始】坐骨結節\n【停止】脛骨の内側髁，斜膝窩靭帯，膝窩筋の筋膜\n【支配神経】坐骨神経（L4～S2）\n【作用】膝関節の屈曲・内旋，股関節の伸展" },
+        { name: "大腿二頭筋(長頭:短頭)", memo: "【起始】長頭：坐骨結節、短頭：大腿骨の粗線の外側唇の下部1/3\n【停止】腓骨頭\n【支配神経】長頭：坐骨神経（L5～S2）、短頭：坐骨神経（L5～S2）\n【作用】膝関節の屈曲・外旋、長頭：股関節の伸展・外旋" },
+        { name: "前脛骨筋", memo: "【起始】脛骨の外側面の上部2/3，下腿骨間膜\n【停止】内側楔状骨，第1中足骨底の足底面\n【支配神経】深腓骨神経（L4・5）\n【作用】足関節の屈曲（背屈），足の内反（内転・回外）" },
+        { name: "長趾伸筋", memo: "【起始】脛骨の外側髁，腓骨の前縁の上部3/4，下腿骨間膜\n【停止】第2～5指の指背腱膜，中節骨底・末節骨底\n【支配神経】深腓骨神経（L4～S1）\n【作用】第2～5指の伸展，足関節の屈曲（背屈），足の外反（外転・回内）" },
+        { name: "長母趾伸筋", memo: "【起始】腓骨の内側面の中央部，下腿骨間膜\n【停止】母指の末節骨底の背面\n【支配神経】深腓骨神経（L4～S1）\n【作用】母指の伸展，足関節の屈曲（背屈），足の内反（内転・回外）" },
+        { name: "第3腓骨筋", memo: "【起始】腓骨の前縁の下部1/3，下腿骨間膜\n【停止】第5中足骨底の背面\n【支配神経】深腓骨神経（L4～S1）\n【作用】足関節の屈曲（背屈），足の外反（外転・回内）" },
+        { name: "長腓骨筋", memo: "【起始】腓骨頭，腓骨の外側面の上部2/3\n【停止】内側楔状骨・第1中足骨底の足底面\n【支配神経】浅腓骨神経（L4～S1）\n【作用】足関節の伸展（底屈），足の外反（外転・回内）" },
+        { name: "短腓骨筋", memo: "【起始】腓骨の外側面の下部2/3\n【停止】第5中足骨粗面\n【支配神経】浅腓骨神経（L4～S1）\n【作用】足関節の伸展（底屈），足の外反（外転・回内）" },
+        { name: "腓腹筋", memo: "【起始】内側頭：大腿骨の内側上顆、外側頭：大腿骨の外側上顆\n【停止】踵骨腱（アキレス腱）を介して踵骨隆起\n【支配神経】脛骨神経（S1・2）\n【作用】足関節の底屈（伸展）、膝関節の屈曲" },
+        { name: "ヒラメ筋", memo: "【起始】腓骨頭・腓骨後面、脛骨のヒラメ筋線\n【停止】踵骨腱（アキレス腱）を介して踵骨隆起\n【支配神経】脛骨神経（S1・2）\n【作用】足関節の底屈（伸展）" },
+        { name: "足底筋", memo: "【起始】大腿骨の外側上顆の上方（外側上顆線）\n【停止】踵骨腱（アキレス腱）の内側縁に合流して踵骨隆起\n【支配神経】脛骨神経（L5～S2）\n【作用】下腿三頭筋の働きを助ける（足関節の底屈、膝関節の屈曲）" },
+        { name: "膝窩筋", memo: "【起始】大腿骨の外側上顆（外側面）\n【停止】脛骨の背面（ヒラメ筋線の上方）\n【支配神経】脛骨神経（L4～S1）\n【作用】膝関節の屈曲・内旋（屈曲の始動）" },
+        { name: "後脛骨筋", memo: "【起始】脛骨・腓骨の背面、下腿骨間膜\n【停止】舟状骨粗面、内側・中間・外側楔状骨、立方骨、第2～4中足骨底（足底面）\n【支配神経】脛骨神経（L4・5）\n【作用】足関節の底屈（伸展）、足の内反（内転・回外）" },
+        { name: "長趾屈筋", memo: "【起始】脛骨の背面（中部）\n【停止】第2～5趾の末節骨底（足底面）\n【支配神経】脛骨神経（L5～S2）\n【作用】第2～5趾の屈曲、足関節の底屈（伸展）、足の内反（内転・回外）" },
+        { name: "長母趾屈筋", memo: "【起始】腓骨の背面（下部2/3）、下腿骨間膜\n【停止】母趾の末節骨底（足底面）\n【支配神経】脛骨神経（L5～S2）\n【作用】母趾の屈曲、足関節の底屈（伸展）、足の内反（内転・回外）" }
+    ];
 
-    // モード切り替え時のリセット処理
+    let current_upper_muscle = null;
+    let current_lower_muscle = null;
+
+    // 出題用配列（最初はすべてを代入、あとでチェック状態を反映させる）
+    let remaining_upper = [];
+    let remaining_lower = [];
+
+    // 各筋肉の出題フラグ（true=出題する, false=除外する）
+    let active_upper_map = {};
+    let active_lower_map = {};
+
+    window.onload = function() {
+        // マップの初期化（全筋肉をtrueにする）
+        upper_box.forEach(m => active_upper_map[m.name] = true);
+        lower_box.forEach(m => active_lower_map[m.name] = true);
+
+        initCardList();
+        resetRemainingPool();
+    };
+
+    // チェック状態を元に、ランダム抽選用のプール（作業用配列）を構築する関数
+    function resetRemainingPool() {
+        remaining_upper = upper_box.filter(m => active_upper_map[m.name]);
+        remaining_lower = lower_box.filter(m => active_lower_map[m.name]);
+    }
+
     function toggleMode() {
-        remaining_upper = [...upper_box];
-        remaining_lower = [...lower_box];
+        resetRemainingPool();
+        
+        current_upper_muscle = null;
+        current_lower_muscle = null;
 
         document.getElementById('upper-label').innerText = "上肢筋";
         document.getElementById('lower-label').innerText = "下肢筋";
         document.getElementById('upper-result').innerText = "？？？";
         document.getElementById('lower-result').innerText = "？？？";
 
-        // グレーダウンの見た目を解除
         document.getElementById('upper-box-element').classList.remove('finished');
         document.getElementById('lower-box-element').classList.remove('finished');
 
@@ -157,50 +450,174 @@
     function drawAll() {
         const isTestMode = document.getElementById('test-mode').checked;
 
-        if (isTestMode) {
-            // 【テストモード（重複なし）】
+        // チェックが入っている筋肉がベース
+        const currentActiveUpper = upper_box.filter(m => active_upper_map[m.name]);
+        const currentActiveLower = lower_box.filter(m => active_lower_map[m.name]);
 
-            // 両方とも空っぽなら完全に終了
+        if (currentActiveUpper.length === 0 && currentActiveLower.length === 0) {
+            alert("カード一覧で少なくとも1つの筋肉にチェックを入れてください。");
+            return;
+        }
+
+        if (isTestMode) {
             if (remaining_upper.length === 0 && remaining_lower.length === 0) {
                 document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
                 document.getElementById('main-btn').disabled = true;
                 return;
             }
 
-            // --- 上肢筋の抽選 ---
             if (remaining_upper.length > 0) {
                 const upIndex = Math.floor(Math.random() * remaining_upper.length);
-                const upperFinal = remaining_upper.splice(upIndex, 1)[0];
-                document.getElementById('upper-result').innerText = upperFinal;
+                current_upper_muscle = remaining_upper.splice(upIndex, 1)[0];
+                document.getElementById('upper-result').innerText = current_upper_muscle.name;
                 document.getElementById('upper-label').innerText = `上肢筋（残り ${remaining_upper.length}）`;
             } else {
-                // 上肢筋がなくなったら「終了」にして見た目をグレーにする
+                current_upper_muscle = null;
                 document.getElementById('upper-result').innerText = "全問終了！";
                 document.getElementById('upper-box-element').classList.add('finished');
             }
 
-            // --- 下肢筋の抽選 ---
             if (remaining_lower.length > 0) {
                 const lowIndex = Math.floor(Math.random() * remaining_lower.length);
-                const lowerFinal = remaining_lower.splice(lowIndex, 1)[0];
-                document.getElementById('lower-result').innerText = lowerFinal;
+                current_lower_muscle = remaining_lower.splice(lowIndex, 1)[0];
+                document.getElementById('lower-result').innerText = current_lower_muscle.name;
                 document.getElementById('lower-label').innerText = `下肢筋（残り ${remaining_lower.length}）`;
             } else {
-                // 下肢筋がなくなったら「終了」にして見た目をグレーにする
+                current_lower_muscle = null;
                 document.getElementById('lower-result').innerText = "全問終了！";
                 document.getElementById('lower-box-element').classList.add('finished');
             }
 
         } else {
-            // 【通常モード（何回でも重複する）】
-            const upperIndex = Math.floor(Math.random() * upper_box.length);
-            const upperFinal = upper_box[upperIndex];
+            // 通常ランダム（チェックONのものから選ぶ）
+            if (currentActiveUpper.length > 0) {
+                const upperIndex = Math.floor(Math.random() * currentActiveUpper.length);
+                current_upper_muscle = currentActiveUpper[upperIndex];
+                document.getElementById('upper-result').innerText = current_upper_muscle.name;
+            } else {
+                document.getElementById('upper-result').innerText = "対象なし";
+            }
 
-            const lowerIndex = Math.floor(Math.random() * lower_box.length);
-            const lowerFinal = lower_box[lowerIndex];
+            if (currentActiveLower.length > 0) {
+                const lowerIndex = Math.floor(Math.random() * currentActiveLower.length);
+                current_lower_muscle = currentActiveLower[lowerIndex];
+                document.getElementById('lower-result').innerText = current_lower_muscle.name;
+            } else {
+                document.getElementById('lower-result').innerText = "対象なし";
+            }
+        }
+    }
 
-            document.getElementById('upper-result').innerText = upperFinal;
-            document.getElementById('lower-result').innerText = lowerFinal;
+    function showMemo(type) {
+        let targetMuscle = (type === 'upper') ? current_upper_muscle : current_lower_muscle;
+        if (!targetMuscle) return;
+        openModalWithData(targetMuscle.name, targetMuscle.memo);
+    }
+
+    function openModalWithData(name, memo) {
+        document.getElementById('modal-muscle-name').innerText = name;
+        document.getElementById('modal-muscle-memo').innerText = memo || "データがありません。";
+        document.getElementById('memo-modal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('memo-modal').classList.remove('show');
+    }
+
+    // --- カード一覧・個別チェックボックスの処理 ---
+    function initCardList() {
+        const upperGrid = document.getElementById('upper-card-grid');
+        const lowerGrid = document.getElementById('lower-card-grid');
+
+        // 上肢筋カード
+        upper_box.forEach(muscle => {
+            upperGrid.appendChild(createMuscleCard(muscle, 'upper'));
+        });
+
+        // 下肢筋カード
+        lower_box.forEach(muscle => {
+            lowerGrid.appendChild(createMuscleCard(muscle, 'lower'));
+        });
+    }
+
+    // カードのHTML要素を組み立てる関数
+    function createMuscleCard(muscle, type) {
+        const card = document.createElement('div');
+        card.className = `muscle-card ${type}-card`;
+        card.id = `card-${type}-${muscle.name}`;
+
+        // チェックボックス
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.checked = true;
+        chk.className = 'card-checkbox';
+        chk.onchange = (e) => {
+            const isChecked = e.target.checked;
+            if (type === 'upper') {
+                active_upper_map[muscle.name] = isChecked;
+            } else {
+                active_lower_map[muscle.name] = isChecked;
+            }
+            
+            // ビジュアルの切り替え
+            if (isChecked) {
+                card.classList.remove('disabled');
+            } else {
+                card.classList.add('disabled');
+            }
+            
+            // プールのリアルタイム更新
+            resetRemainingPool();
+        };
+
+        // 名前をクリックした時はメモを開くエリア
+        const labelArea = document.createElement('div');
+        labelArea.className = 'card-click-area';
+        labelArea.innerText = muscle.name;
+        labelArea.onclick = () => openModalWithData(muscle.name, muscle.memo);
+
+        card.appendChild(chk);
+        card.appendChild(labelArea);
+        return card;
+    }
+
+    // 「全選択/全解除」ボタンの処理
+    function bulkToggle(type) {
+        const grid = document.getElementById(`${type}-card-grid`);
+        const checkboxes = grid.querySelectorAll('.card-checkbox');
+        const map = (type === 'upper') ? active_upper_map : active_lower_map;
+        const box = (type === 'upper') ? upper_box : lower_box;
+
+        // 現在1つでもチェックが入っていたら「全解除」、すべて外れていたら「全選択」にする
+        const anyChecked = Array.from(checkboxes).some(c => c.checked);
+        const nextState = !anyChecked;
+
+        checkboxes.forEach(c => c.checked = nextState);
+        box.forEach(m => map[m.name] = nextState);
+
+        // 各カード要素の disabled クラスを一括制御
+        box.forEach(m => {
+            const cardEl = document.getElementById(`card-${type}-${m.name}`);
+            if (cardEl) {
+                if (nextState) cardEl.classList.remove('disabled');
+                else cardEl.classList.add('disabled');
+            }
+        });
+
+        resetRemainingPool();
+    }
+
+    function toggleCardSection() {
+        const section = document.getElementById('card-section');
+        const toggleBtn = document.querySelector('.card-section-toggle');
+        
+        section.classList.toggle('show');
+        
+        if (section.classList.contains('show')) {
+            toggleBtn.innerText = "カード一覧を閉じる";
+            section.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            toggleBtn.innerText = "カード一覧を表示";
         }
     }
 </script>
