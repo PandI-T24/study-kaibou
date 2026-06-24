@@ -29,44 +29,61 @@
 
         /* モード設定エリア */
         .mode-settings {
-            margin-bottom: 20px;
-            padding: 10px;
+            margin-bottom: 15px;
+            padding: 12px;
             background-color: #f9fafb;
             border-radius: 8px;
             font-size: 0.95rem;
             color: #4b5563;
             display: flex;
+            flex-direction: column;
+            gap: 10px;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
-        .mode-settings input {
+        .mode-switch-wrap {
+            display: flex;
+            gap: 15px;
+            font-weight: bold;
+        }
+        .mode-switch-wrap input {
+            margin-right: 4px;
+        }
+        .test-mode-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        .test-mode-wrap input {
             width: 16px;
             height: 16px;
             cursor: pointer;
         }
 
-        /* 上と下の表示エリア */
+        /* 表示エリア */
         .display-box {
             padding: 15px;
             margin-bottom: 15px;
             border-radius: 8px;
             text-align: center;
             transition: all 0.3s;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
         }
-        .upper-section {
-            background-color: #eff6ff;
-            border: 1px solid #bfdbfe;
-        }
-        .lower-section {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-        }
+        
+        /* カテゴリ・モードごとの動的カラークラス */
+        .bg-upper { background-color: #eff6ff; border-color: #bfdbfe; }
+        .bg-lower { background-color: #fef2f2; border-color: #fecaca; }
+        .bg-trunk { background-color: #f0fdf4; border-color: #bbf7d0; }
+        .bg-bone  { background-color: #f5f5f4; border-color: #e7e5e4; } /* 骨専用のニュートラルカラー */
 
         /* 終了した箱の見た目（グレーダウン） */
         .display-box.finished {
-            background-color: #e5e7eb;
-            border-color: #d1d5db;
+            background-color: #e5e7eb !important;
+            border-color: #d1d5db !important;
             opacity: 0.6;
         }
 
@@ -77,7 +94,7 @@
             font-weight: bold;
         }
 
-        /* 筋肉名が表示されるエリア */
+        /* 名称が表示されるエリア */
         .result-text {
             font-size: 1.6rem;
             font-weight: bold;
@@ -161,6 +178,8 @@
         }
         .upper-title { color: #1d4ed8; }
         .lower-title { color: #b91c1c; }
+        .trunk-title { color: #15803d; }
+        .bone-title  { color: #57534e; }
         
         .bulk-btn {
             padding: 4px 10px;
@@ -184,7 +203,7 @@
             padding-top: 10px;
         }
         
-        /* 筋肉カード（レイアウト調整） */
+        /* カード共通 */
         .muscle-card {
             padding: 12px 8px;
             font-size: 0.95rem;
@@ -198,7 +217,6 @@
             min-height: 45px;
             box-sizing: border-box;
         }
-        /* チェックが外れたカードは薄くする */
         .muscle-card.disabled {
             opacity: 0.5;
             background-color: #f3f4f6 !important;
@@ -222,6 +240,8 @@
         }
         .upper-card { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
         .lower-card { background-color: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+        .trunk-card { background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+        .bone-card  { background-color: #f5f5f4; border: 1px solid #e7e5e4; color: #44403c; }
 
         /* --- モーダル（ポップアップメモ）のスタイル --- */
         .modal-overlay {
@@ -286,232 +306,453 @@
 <body>
 
 <div class="container">
+    <!-- 筋肉・骨の切り替え設定 -->
     <div class="mode-settings">
-        <input type="checkbox" id="test-mode" onchange="toggleMode()">
-        <label for="test-mode">重複なし</label>
+        <div class="mode-switch-wrap">
+            <label><input type="radio" name="target-type" value="muscle" checked onchange="switchTargetType()">筋肉</label>
+            <label><input type="radio" name="target-type" value="bone" onchange="switchTargetType()">骨</label>
+        </div>
+        <div class="test-mode-wrap">
+            <input type="checkbox" id="test-mode" onchange="toggleMode()">
+            <label for="test-mode">重複なし</label>
+        </div>
     </div>
 
-    <div id="upper-box-element" class="display-box upper-section">
-        <div id="upper-label" class="label">上肢筋</div>
-        <div id="upper-result" class="result-text" onclick="showMemo('upper')">？？？</div>
+    <!-- 抽選結果表示ボックス（4つ） -->
+    <div id="box1-element" class="display-box">
+        <div id="box1-label" class="label">？？？</div>
+        <div id="box1-result" class="result-text" onclick="showMemo('box1')">？？？</div>
     </div>
 
-    <div id="lower-box-element" class="display-box lower-section">
-        <div id="lower-label" class="label">下肢筋</div>
-        <div id="lower-result" class="result-text" onclick="showMemo('lower')">？？？</div>
+    <div id="box2-element" class="display-box">
+        <div id="box2-label" class="label">？？？</div>
+        <div id="box2-result" class="result-text" onclick="showMemo('box2')">？？？</div>
+    </div>
+
+    <div id="box3-element" class="display-box" style="display: none;">
+        <div id="box3-label" class="label">？？？</div>
+        <div id="box3-result" class="result-text" onclick="showMemo('box3')">？？？</div>
+    </div>
+
+    <div id="box4-element" class="display-box" style="display: none;">
+        <div id="box4-label" class="label">？？？</div>
+        <div id="box4-result" class="result-text" onclick="showMemo('box4')">？？？</div>
     </div>
 
     <button id="main-btn" class="draw-btn" onclick="drawAll()">実技スタート</button>
 </div>
 
-<button class="card-section-toggle" onclick="toggleCardSection()">カード一覧を表示</button>
+<button id="toggle-list-btn" class="card-section-toggle" onclick="toggleCardSection()">カード一覧を表示</button>
 
+<!-- 共通コンテナ（JSにより筋肉用と骨用で動的に見出しや構成を切り替える） -->
 <div id="card-section" class="card-container">
-    <div class="card-header-wrap">
-        <div class="card-subtitle upper-title">上肢筋 一覧</div>
-        <button class="bulk-btn" onclick="bulkToggle('upper')">全選択/解除</button>
-    </div>
-    <div id="upper-card-grid" class="card-grid"></div>
+    <div id="list-wrapper-muscle">
+        <div class="card-header-wrap">
+            <div class="card-subtitle upper-title">上肢筋 一覧</div>
+            <button class="bulk-btn" onclick="bulkToggle('upper')">全選択/解除</button>
+        </div>
+        <div id="upper-card-grid" class="card-grid"></div>
 
-    <div class="card-header-wrap">
-        <div class="card-subtitle lower-title">下肢筋 一覧</div>
-        <button class="bulk-btn" onclick="bulkToggle('lower')">全選択/解除</button>
+        <div class="card-header-wrap">
+            <div class="card-subtitle lower-title">下肢筋 一覧</div>
+            <button class="bulk-btn" onclick="bulkToggle('lower')">全選択/解除</button>
+        </div>
+        <div id="lower-card-grid" class="card-grid"></div>
+
+        <div class="card-header-wrap">
+            <div class="card-subtitle trunk-title">体幹筋 一覧</div>
+            <button class="bulk-btn" onclick="bulkToggle('trunk')">全選択/解除</button>
+        </div>
+        <div id="trunk-card-grid" class="card-grid"></div>
     </div>
-    <div id="lower-card-grid" class="card-grid"></div>
+
+    <div id="list-wrapper-bone" style="display: none;">
+        <div class="card-header-wrap">
+            <div class="card-subtitle bone-title">骨 全体一覧</div>
+            <button class="bulk-btn" onclick="bulkToggle('bone')">全選択/解除</button>
+        </div>
+        <div id="bone-card-grid" class="card-grid"></div>
+    </div>
 </div>
 
+<!-- モーダル構造 -->
 <div id="memo-modal" class="modal-overlay" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <div id="modal-muscle-name" class="modal-title">筋肉名</div>
-        <div id="modal-muscle-memo" class="modal-body">ここに起始・停止などのメモが表示されます。</div>
+        <div id="modal-muscle-name" class="modal-title">名称</div>
+        <div id="modal-muscle-memo" class="modal-body">ここにメモが表示されます。</div>
         <button class="modal-close-btn" onclick="closeModal()">閉じる</button>
     </div>
 </div>
 
 <script>
-   const upper_box = [
-        { name: "大胸筋", memo: "【起始】鎖骨部：鎖骨の内側1/2、胸肋部：胸骨，第1～7肋軟骨、腹部：腹直筋鞘の前葉\n【停止】上腕骨の大結節稜\n【支配神経】内側・外側胸筋神経（C5～T1）\n【作用】肩関節の屈曲・内転・内旋，努力性吸気" },
-        { name: "小胸筋", memo: "【起始】第3～5肋骨\n【停止】肩甲骨の烏口突起\n【支配神経】内側・外側胸筋神経（C6～T1）\n【作用】肩甲骨の下制・下方回旋" },
-        { name: "鎖骨下筋", memo: "【起始】第1肋骨とその軟骨部\n【停止】鎖骨の外側1/3の下面\n【支配神経】鎖骨下筋神経（C5・6）\n【作用】鎖骨の下制" },
-        { name: "前鋸筋", memo: "【起始】第1～9肋骨の外側面\n【停止】肩甲骨の上角・内側縁・下角\n【支配神経】長胸神経（C5～7）\n【作用】肩甲骨の外転・上方回旋" },
-        { name: "僧帽筋", memo: "【起始】後頭骨の上項線の内側1/3と外後頭隆起，項靭帯，第7頸椎・第1～12胸椎の棘突起，棘上靭帯\n【停止】鎖骨の外側1/3，肩甲骨の肩峰・肩甲棘\n【支配神経】副神経，頸神経（C2～4）\n【作用】上部（下行部）：肩甲骨の内転・挙上・上方回旋、中部（水平部）：肩甲骨の内転、下部（上行部）：肩甲骨の内転・下制・上方回旋" },
-        { name: "広背筋", memo: "【起始】胸腰筋膜を介して第7～12胸椎，第1～5腰椎の棘突起，仙骨の正中仙骨稜，下位の肋骨，腸骨稜，肩甲骨の下角\n【停止】上腕骨の小結節稜\n【支配神経】胸背神経（C6～8）\n【作用】肩関節の伸展・内転・内旋" },
-        { name: "肩甲挙筋", memo: "【起始】第1～4頸椎の横突起の後結節\n【停止】肩甲骨の上角\n【支配神経】肩甲背神経（C5）と頸神経（C3・4）\n【作用】肩甲骨の挙上・下方回旋" },
-        { name: "小菱形筋", memo: "【起始】第7頸椎・第1胸椎の棘突起，項靭帯\n【停止】肩甲骨の内側縁の中部のやや上方，肩甲棘の内側端\n【支配神経】肩甲背神経（C4・5）\n【作用】肩甲骨の内転・挙上・下方回旋" },
-        { name: "大菱形筋", memo: "【起始】第2～5胸椎の棘突起，項靭帯\n【停止】肩甲骨の内側縁の中部から下部\n【支配神経】肩甲背神経（C4・5）\n【作用】肩甲骨の内転・挙上・下方回旋" },
-        { name: "三角筋", memo: "【起始】鎖骨の外側1/3，肩甲骨の肩峰・肩甲棘の外側\n【停止】上腕骨の三角筋粗面\n【支配神経】腋窩神経（C5・6）\n【作用】前部：肩甲骨の屈曲・外転・内旋・水平屈曲、中部：肩甲骨の外転、後部：肩甲骨の伸展・外転・外旋・水平伸展" },        
-        { name: "棘上筋", memo: "【起始】肩甲骨の棘上窩\n【停止】上腕骨の大結節\n【支配神経】肩甲上神経（C4～6）\n【作用】肩関節の外転" },
-        { name: "棘下筋", memo: "【起始】肩甲骨の棘下窩\n【停止】上腕骨の大結節\n【支配神経】肩甲上神経（C5・6）\n【作用】肩関節の外旋" },
-        { name: "小円筋", memo: "【起始】肩甲骨の外側縁の背面\n【停止】上腕骨の大結節\n【支配神経】腋窩神経（C5・6）\n【作用】肩関節の外旋" },
-        { name: "大円筋", memo: "【起始】肩甲骨の下角の背面\n【停止】上腕骨の小結節稜\n【支配神経】肩甲下神経（C5・6）\n【作用】肩関節の伸展・内転・内旋" },
-        { name: "肩甲下筋", memo: "【起始】肩甲骨の肩甲下窩\n【停止】上腕骨の小結節\n【支配神経】肩甲下神経（C5・6）\n【作用】肩関節の内旋" },
-        { name: "上腕二頭筋", memo: "【起始】長頭：肩甲骨の関節上結節、短頭：肩甲骨の烏口突起\n【停止】橈骨粗面と上腕二頭筋腱膜\n【支配神経】筋皮神経（C5・6）\n【作用】肘関節の屈曲，前腕の回外，肩関節の屈曲（長頭）・内転（短頭）" },
-        { name: "上腕筋", memo: "【起始】上腕骨前面の下半，内側・外側上腕筋間中隔\n【停止】尺骨粗面\n【支配神経】筋皮神経（C5・6）\n【作用】肘関節の屈曲" },
-        { name: "烏口腕筋", memo: "【起始】肩甲骨の烏口突起\n【停止】上腕骨の内側面の中央部\n【支配神経】筋皮神経（C6・7）\n【作用】肩関節の屈曲・内転" },
-        { name: "上腕三頭筋", memo: "【起始】長頭：肩甲骨の関節下結節、外側頭：上腕骨の背面（橈骨神経溝の上外側）、内側頭：上腕骨の背面（橈骨神経溝の下内側），内側・外側上腕筋間中隔\n【停止】尺骨の肘頭\n【支配神経】橈骨神経（C6～8）\n【作用】肘関節の伸展、長頭：肩関節の伸展・内転" },
-        { name: "肘筋", memo: "【起始】上腕骨の外側上顆の背面\n【停止】尺骨の肘頭の外側面と体の背面近位部\n【支配神経】橈骨神経（C7・8）\n【作用】肘関節の伸展" },
-       { name: "円回内筋", memo: "【起始】上腕頭：上腕骨の内側上顆・内側上腕筋間中隔、尺骨頭：尺骨の鉤状突起\n【停止】橈骨の外側面（中央部の円回内筋粗面）\n【支配神経】正中神経（C6・7）\n【作用】前腕の回内、肘関節の屈曲" },
-        { name: "橈側手根屈筋", memo: "【起始】上腕骨の内側上顆、前腕筋膜\n【停止】第2・3中手骨底（掌面）\n【支配神経】正中神経（C6・7）\n【作用】手関節の掌屈（屈曲）・橈屈（外転）、肘関節の屈曲" },
-        { name: "長掌筋", memo: "【起始】上腕骨の内側上顆、前腕筋膜\n【停止】手掌腱膜\n【支配神経】正中神経（C7・8）\n【作用】手掌腱膜を緊張させる、手関節の掌屈（屈曲）、肘関節の屈曲" },
-        { name: "尺側手根屈筋", memo: "【起始】上腕頭：上腕骨の内側上顆、尺骨頭：尺骨の肘頭・後面\n【停止】豆状骨（豆鉤靭帯・豆中手靭帯を介して有鉤骨・第5中手骨底に終わる）\n【支配神経】尺骨神経（C7～T1）\n【作用】手関節の掌屈（屈曲）・尺屈（内転）" },
-        { name: "浅指屈筋", memo: "【起始】上腕尺骨頭：上腕骨の内側上顆・尺骨の鉤状突起、橈骨頭：橈骨の前面（上部斜線）\n【停止】第2～5指の中節骨（体側縁）\n【支配神経】正中神経（C7～T1）\n【作用】第2～5指のPIP関節の屈曲・MP関節の屈曲、手関節の掌屈（肘関節の屈曲）" },
-        { name: "深指屈筋", memo: "【起始】尺骨の前面・内側面、前腕骨間膜\n【停止】第2～5指の末節骨底（掌面）\n【支配神経】橈側半（第2・3指）：正中神経（前骨間神経）（C8・T1）、尺側半（第4・5指）：尺骨神経（C8・T1）\n【作用】第2～5指のDIP関節・PIP関節・MP関節の屈曲、手関節の掌屈（屈曲）" },
-        { name: "長母指屈筋", memo: "【起始】橈骨の前面、前腕骨間膜\n【停止】母指の末節骨底（掌面）\n【支配神経】正中神経（前骨間神経）（C7～T1）\n【作用】母指のIP関節・MP関節の屈曲" },
-        { name: "方形回内筋", memo: "【起始】尺骨の前面（下部1/4）\n【停止】橈骨の前面（下部1/4）\n【支配神経】正中神経（前骨間神経）（C7～T1）\n【作用】前腕の回内" }
+    // --- 筋肉データ ---
+    const upper_box = [
+        { name: "三角筋中部線維", memo: "起始：肩峰\n停止：上腕骨三角筋粗面" },
+        { name: "上腕二頭筋長頭腱", memo: "" },
+        { name: "上腕二頭筋短頭", memo: "" },
+        { name: "上腕三頭筋外側頭", memo: "" },
+        { name: "上腕筋", memo: "" },
+        { name: "腕橈骨筋", memo: "" },
+        { name: "円回内筋", memo: "" },
+        { name: "橈側手根屈筋", memo: "" },
+        { name: "尺側手根屈筋", memo: "" },
+        { name: "長橈側手根伸筋", memo: "" },
+        { name: "短橈側手根伸筋", memo: "" },
+        { name: "尺側手根伸筋", memo: "" },
+        { name: "長母指外転筋", memo: "" },
+        { name: "総指伸筋", memo: "" },
+        { name: "小指伸筋", memo: "" },
+        { name: "短掌筋", memo: "" },
+        { name: "母指内転筋", memo: "" },
+        { name: "短母指外転筋", memo: "" }
     ];
 
     const lower_box = [
-        { name: "腸骨筋", memo: "【起始】腸骨窩\n【停止】大腿骨の小転子\n【支配神経】大腿神経（L2～4）\n【作用】股関節の屈曲・外旋" },
-        { name: "大腰筋", memo: "【起始】第12胸椎～第5腰椎の椎体と椎間円板，すべての腰椎の横突起\n【停止】大腿骨の小転子\n【支配神経】腰神経叢の筋枝（L1～3またはL2～4）\n【作用】股関節の屈曲・外旋" },
-        { name: "小腰筋", memo: "【起始】第12胸椎・第1腰椎の椎体\n【停止】腸恥隆起，腸骨筋膜\n【支配神経】腰神経叢の筋枝（L1・2）\n【作用】骨盤の挙上" },
-        { name: "縫工筋", memo: "【起始】上前腸骨棘\n【停止】脛骨粗面の内側（鵞足）\n【支配神経】大腿神経（L2～4）\n【作用】股関節の屈曲・外転・外旋，膝関節の屈曲・内旋" },
-        { name: "大腿直筋", memo: "【起始】下前腸骨棘，臼蓋上縁\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展，股関節の屈曲" },
-        { name: "外側広筋", memo: "【起始】大腿骨の大転子・転子間線・粗線の外側唇\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展" },
-        { name: "中間広筋", memo: "【起始】大腿骨の前面・外面の上部2/3\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展" },
-        { name: "内側広筋", memo: "【起始】大腿骨の転子間線・粗線の内側唇\n【停止】膝蓋骨（膝蓋靭帯を介して脛骨粗面）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展" },
-        { name: "膝関節筋", memo: "【起始】大腿骨の前面の下部\n【停止】膝関節包（滑膜組織）\n【支配神経】大腿神経（L2～4）\n【作用】膝関節の伸展時に関節包を上方に引く" },
-        { name: "長内転筋", memo: "【起始】恥骨結節の下方\n【停止】大腿骨の粗線の内側唇の中央1/3\n【支配神経】閉鎖神経（L2～4）\n【作用】股関節の内転・屈曲・外旋" },
-        { name: "短内転筋", memo: "【起始】恥骨下枝\n【停止】大腿骨の粗線の内側唇の上部1/3\n【支配神経】閉鎖神経（L2～4）\n【作用】股関節の内転・屈曲・外旋" },
-        { name: "薄筋", memo: "【起始】恥骨下枝\n【停止】脛骨粗面の内側（鵞足）\n【支配神経】閉鎖神経（L2～4）\n【作用】股関節の内転，膝関節の屈曲・内旋" },
-        { name: "恥骨筋", memo: "【起始】恥骨櫛\n【停止】大腿骨の恥骨筋線\n【支配神経】大腿神経・閉鎖神経（L2～4）\n【作用】股関節の内転・屈曲・外旋" },
-        { name: "大内転筋", memo: "【起始】恥骨下枝，坐骨枝，坐骨結節\n【停止】大腿骨の粗線の内側唇，内転筋結節\n【支配神経】閉鎖神経と坐骨神経（L2～5）\n【作用】股関節の内転・伸展・内旋" },
-        { name: "大殿筋", memo: "【起始】腸骨翼の外面，仙骨・尾骨の背面，仙結節靭帯\n【停止】上部：腸脛靭帯，下部：大腿骨の殿筋粗面\n【支配神経】下殿神経（L5～S2）\n【作用】股関節の伸展・外旋、上部：外転、下部：内転" },
-        { name: "中殿筋", memo: "【起始】腸骨翼の外面（前・後殿筋線の間）\n【停止】大腿骨の大転子\n【支配神経】上殿神経（L4～S1）\n【作用】股関節の外転、前部：内旋・屈曲、後部：外旋・伸展" },
-        { name: "小殿筋", memo: "【起始】腸骨翼の外面（前・下殿筋線の間）\n【停止】大腿骨の大転子\n【支配神経】上殿神経（L4～S1）\n【作用】股関節の外転、前部：内旋・屈曲" },
-        { name: "大腿筋膜張筋", memo: "【起始】上前腸骨棘\n【停止】腸脛靭帯を介して脛骨の外側髁\n【支配神経】上殿神経（L4～S1）\n【作用】大腿筋膜の緊張，股関節の屈曲・外転・内旋，膝関節の伸展の維持" },
-        { name: "梨状筋", memo: "【起始】第2～4仙骨の前面\n【停止】大腿骨の大転子\n+【支配神経】仙骨神経叢の筋枝（L5～S2）\n【作用】股関節の外旋・外転（屈曲位）" },
-        { name: "上双子筋", memo: "【起始】坐骨棘\n【停止】内閉鎖筋の腱と合流して大転子窩\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋" },
-        { name: "下双子筋", memo: "【起始】坐骨結節\n【停止】内閉鎖筋の腱と合流して大転子窩\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋" },
-        { name: "内閉鎖筋", memo: "【起始】閉鎖孔の周囲（内側面），閉鎖膜\n【停止】大腿骨の大転子窩\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋" },
-        { name: "大腿方形筋", memo: "【起始】坐骨結節\n【停止】大腿骨の転子間稜\n【支配神経】仙骨神経叢の筋枝\n【作用】股関節の外旋・内転" },
-        { name: "外閉鎖筋", memo: "【起始】閉鎖孔の周囲（外側面），閉鎖膜\n【停止】大腿骨の大転子窩\n【支配神経】閉鎖神経（L3・4）\n【作用】股関節の外旋・内転" },
-        { name: "半腱様筋", memo: "【起始】坐骨結節\n【停止】脛骨粗面の内側（鵞足）\n【支配神経】坐骨神経（L4～S2）\n【作用】膝関節の屈曲・内旋，股関節の伸展・内旋" },
-        { name: "半膜様筋", memo: "【起始】坐骨結節\n【停止】脛骨の内側髁，斜膝窩靭帯，膝窩筋の筋膜\n【支配神経】坐骨神経（L4～S2）\n【作用】膝関節の屈曲・内旋，股関節の伸展" },
-        { name: "大腿二頭筋(長頭:短頭)", memo: "【起始】長頭：坐骨結節、短頭：大腿骨の粗線の外側唇の下部1/3\n【停止】腓骨頭\n【支配神経】長頭：坐骨神経（L5～S2）、短頭：坐骨神経（L5～S2）\n【作用】膝関節の屈曲・外旋、長頭：股関節の伸展・外旋" },
-        { name: "前脛骨筋", memo: "【起始】脛骨の外側面の上部2/3，下腿骨間膜\n【停止】内側楔状骨，第1中足骨底の足底面\n【支配神経】深腓骨神経（L4・5）\n【作用】足関節の屈曲（背屈），足の内反（内転・回外）" },
-        { name: "長趾伸筋", memo: "【起始】脛骨の外側髁，腓骨の前縁の上部3/4，下腿骨間膜\n【停止】第2～5指の指背腱膜，中節骨底・末節骨底\n【支配神経】深腓骨神経（L4～S1）\n【作用】第2～5指の伸展，足関節の屈曲（背屈），足の外反（外転・回内）" },
-        { name: "長母趾伸筋", memo: "【起始】腓骨の内側面の中央部，下腿骨間膜\n【停止】母指の末節骨底の背面\n【支配神経】深腓骨神経（L4～S1）\n【作用】母指の伸展，足関節の屈曲（背屈），足の内反（内転・回外）" },
-        { name: "第3腓骨筋", memo: "【起始】腓骨の前縁の下部1/3，下腿骨間膜\n【停止】第5中足骨底の背面\n【支配神経】深腓骨神経（L4～S1）\n【作用】足関節の屈曲（背屈），足の外反（外転・回内）" },
-        { name: "長腓骨筋", memo: "【起始】腓骨頭，腓骨の外側面の上部2/3\n【停止】内側楔状骨・第1中足骨底の足底面\n【支配神経】浅腓骨神経（L4～S1）\n【作用】足関節の伸展（底屈），足の外反（外転・回内）" },
-        { name: "短腓骨筋", memo: "【起始】腓骨の外側面の下部2/3\n【停止】第5中足骨粗面\n【支配神経】浅腓骨神経（L4～S1）\n【作用】足関節の伸展（底屈），足の外反（外転・回内）" },
-        { name: "腓腹筋", memo: "【起始】内側頭：大腿骨の内側上顆、外側頭：大腿骨の外側上顆\n【停止】踵骨腱（アキレス腱）を介して踵骨隆起\n【支配神経】脛骨神経（S1・2）\n【作用】足関節の底屈（伸展）、膝関節の屈曲" },
-        { name: "ヒラメ筋", memo: "【起始】腓骨頭・腓骨後面、脛骨のヒラメ筋線\n【停止】踵骨腱（アキレス腱）を介して踵骨隆起\n【支配神経】脛骨神経（S1・2）\n【作用】足関節の底屈（伸展）" },
-        { name: "足底筋", memo: "【起始】大腿骨の外側上顆の上方（外側上顆線）\n【停止】踵骨腱（アキレス腱）の内側縁に合流して踵骨隆起\n【支配神経】脛骨神経（L5～S2）\n【作用】下腿三頭筋の働きを助ける（足関節の底屈、膝関節の屈曲）" },
-        { name: "膝窩筋", memo: "【起始】大腿骨の外側上顆（外側面）\n【停止】脛骨の背面（ヒラメ筋線の上方）\n【支配神経】脛骨神経（L4～S1）\n【作用】膝関節の屈曲・内旋（屈曲の始動）" },
-        { name: "後脛骨筋", memo: "【起始】脛骨・腓骨の背面、下腿骨間膜\n【停止】舟状骨粗面、内側・中間・外側楔状骨、立方骨、第2～4中足骨底（足底面）\n【支配神経】脛骨神経（L4・5）\n【作用】足関節の底屈（伸展）、足の内反（内転・回外）" },
-        { name: "長趾屈筋", memo: "【起始】脛骨の背面（中部）\n【停止】第2～5趾の末節骨底（足底面）\n【支配神経】脛骨神経（L5～S2）\n【作用】第2～5趾の屈曲、足関節の底屈（伸展）、足の内反（内転・回外）" },
-        { name: "長母趾屈筋", memo: "【起始】腓骨の背面（下部2/3）、下腿骨間膜\n【停止】母趾の末節骨底（足底面）\n【支配神経】脛骨神経（L5～S2）\n【作用】母趾の屈曲、足関節の底屈（伸展）、足の内反（内転・回外）" }
+        { name: "大殿筋", memo: "" },
+        { name: "中殿筋", memo: "" },
+        { name: "大腿筋膜張筋", memo: "" },
+        { name: "梨状筋", memo: "" },
+        { name: "縫工筋", memo: "" },
+        { name: "大腿直筋", memo: "" },
+        { name: "内側広筋", memo: "" },
+        { name: "外側広筋", memo: "" },
+        { name: "大腿二頭筋", memo: "" },
+        { name: "半腱様筋", memo: "" },
+        { name: "半膜様筋", memo: "" },
+        { name: "薄筋", memo: "" },
+        { name: "長内転筋", memo: "" },
+        { name: "前脛骨筋", memo: "" },
+        { name: "腓腹筋", memo: "" },
+        { name: "後脛骨筋", memo: "" },
+        { name: "長腓骨筋", memo: "" },
+        { name: "長母趾伸筋", memo: "" },
+        { name: "長趾伸筋", memo: "" }
     ];
 
-    let current_upper_muscle = null;
-    let current_lower_muscle = null;
+    const trunk_box = [
+        { name: "僧帽筋上部線維", memo: "" },
+        { name: "僧帽筋中部線維", memo: "" },
+        { name: "僧帽筋下部線維", memo: "" },
+        { name: "胸鎖乳突筋", memo: "" },
+        { name: "小胸筋", memo: "" },
+        { name: "烏口腕筋", memo: "" },
+        { name: "広背筋", memo: "" },
+        { name: "前鋸筋", memo: "" },
+        { name: "肩甲下筋", memo: "" },
+        { name: "棘上筋", memo: "" },
+        { name: "棘下筋", memo: "" },
+        { name: "大円筋", memo: "" },
+        { name: "小円筋", memo: "" },
+        { name: "腸骨筋", memo: "" },
+        { name: "大腰筋", memo: "" },
+        { name: "腰方形筋", memo: "" }
+    ];
 
-    // 出題用配列（最初はすべてを代入、あとでチェック状態を反映させる）
-    let remaining_upper = [];
-    let remaining_lower = [];
+    // --- 骨データ（1つの大きな全体プールとして定義） ---
+const bone_box = [
+    // 脊柱・体幹
+    { name: "C7/T1棘突起", memo: "" },
+    { name: "T2棘突起", memo: "" },
+    { name: "T3棘突起", memo: "" },
+    { name: "T7棘突起", memo: "" },
+    { name: "L4棘突起", memo: "" },
+    { name: "胸骨角", memo: "" },
+    { name: "第2肋骨", memo: "" },
+    { name: "第4肋骨", memo: "" },
+    { name: "第10肋骨", memo: "" },
+    { name: "腸骨稜", memo: "" },
+    { name: "上前腸骨棘", memo: "" },
+    { name: "下前腸骨棘", memo: "" },
+    { name: "上後腸骨棘", memo: "" },
+    { name: "坐骨結節", memo: "" },
+    // 肩甲帯・上肢
+    { name: "肩甲骨上角", memo: "" },
+    { name: "肩甲骨下角", memo: "" },
+    { name: "肩甲骨内側縁", memo: "" },
+    { name: "胸鎖関節", memo: "" },
+    { name: "肩鎖関節", memo: "" },
+    { name: "肩峰", memo: "" },
+    { name: "肩甲棘", memo: "" },
+    { name: "烏口突起", memo: "" },
+    { name: "上腕骨大結節", memo: "" },
+    { name: "上腕骨小結節", memo: "" },
+    { name: "上腕骨結節間溝", memo: "" },
+    { name: "上腕骨内側上顆", memo: "" },
+    { name: "上腕骨外側上顆", memo: "" },
+    { name: "上腕骨小頭", memo: "" },
+    { name: "上腕骨滑車", memo: "" },
+    { name: "上腕骨頚体角", memo: "" },
+    { name: "上腕骨後捻角", memo: "" },
+    { name: "上腕骨解剖頚", memo: "" },
+    { name: "上腕骨外科頚", memo: "" },
+    { name: "三角筋粗面", memo: "" },
+    { name: "橈骨神経溝", memo: "" },
+    { name: "尺骨神経溝", memo: "" },
+    { name: "腕尺関節", memo: "" },
+    { name: "腕橈関節", memo: "" },
+    { name: "上橈尺関節", memo: "" },
+    { name: "下橈尺関節", memo: "" },
+    { name: "肘頭", memo: "" },
+    { name: "内側顆上稜", memo: "" },
+    { name: "外側顆上稜", memo: "" },
+    { name: "内側上顆", memo: "" },
+    { name: "外側上顆", memo: "" },
+    { name: "鈎突窩", memo: "" },
+    { name: "肘頭窩", memo: "" },
+    { name: "橈骨窩", memo: "" },
+    { name: "近位手根骨の名称", memo: "" },
+    { name: "遠位手根骨の名称", memo: "" },
+    // 下肢・足部
+    { name: "大転子", memo: "" },
+    { name: "ローザー・ネラトン線", memo: "" },
+    { name: "ヒューター線", memo: "" },
+    { name: "ヒューター三角", memo: "" },
+    { name: "外側上顆", memo: "" },
+    { name: "内側上顆", memo: "" },
+    { name: "内転筋結節", memo: "" },
+    { name: "膝蓋骨", memo: "" },
+    { name: "Qアングル", memo: "" },
+    { name: "FTA角", memo: "" },
+    { name: "膝関節裂隙", memo: "" },
+    { name: "脛骨粗面", memo: "" },
+    { name: "腓骨頭", memo: "" },
+    { name: "外果", memo: "" },
+    { name: "内果", memo: "" },
+    { name: "距骨", memo: "" },
+    { name: "舟状骨", memo: "" },
+    { name: "踵骨", memo: "" },
+    { name: "内側縦アーチ", memo: "" },
+    { name: "ガーディー結節", memo: "" }
+];
 
-    // 各筋肉の出題フラグ（true=出題する, false=除外する）
-    let active_upper_map = {};
-    let active_lower_map = {};
+    // 状態管理変数
+    let currentMode = "muscle"; // "muscle" or "bone"
+    let current_box_items = { box1: null, box2: null, box3: null, box4: null };
+    
+    // 重複なしモード（テストモード）用の残りアイテムプール
+    let remaining_pools = { upper: [], lower: [], trunk: [], bone: [] };
+    
+    // チェックボックス有効化マップ
+    let active_maps_muscle = { upper: {}, lower: {}, trunk: {} };
+    let active_maps_bone = { bone: {} };
 
     window.onload = function() {
-        // マップの初期化（全筋肉をtrueにする）
-        upper_box.forEach(m => active_upper_map[m.name] = true);
-        lower_box.forEach(m => active_lower_map[m.name] = true);
+        // 初期アクティブマップの構築
+        upper_box.forEach(m => active_maps_muscle.upper[m.name] = true);
+        lower_box.forEach(m => active_maps_muscle.lower[m.name] = true);
+        trunk_box.forEach(m => active_maps_muscle.trunk[m.name] = true);
+        bone_box.forEach(b => active_maps_bone.bone[b.name] = true);
 
         initCardList();
         resetRemainingPool();
     };
 
-    // チェック状態を元に、ランダム抽選用のプール（作業用配列）を構築する関数
+    // 残りプールをリセット
     function resetRemainingPool() {
-        remaining_upper = upper_box.filter(m => active_upper_map[m.name]);
-        remaining_lower = lower_box.filter(m => active_lower_map[m.name]);
+        if (currentMode === "muscle") {
+            remaining_pools.upper = upper_box.filter(m => active_maps_muscle.upper[m.name]);
+            remaining_pools.lower = lower_box.filter(m => active_maps_muscle.lower[m.name]);
+            remaining_pools.trunk = trunk_box.filter(m => active_maps_muscle.trunk[m.name]);
+        } else {
+            remaining_pools.bone = bone_box.filter(b => active_maps_bone.bone[b.name]);
+        }
     }
 
+    // 筋肉と骨の切り替え処理
+    function switchTargetType() {
+        const selected = document.querySelector('input[name="target-type"]:checked').value;
+        currentMode = selected;
+
+        const mWrapper = document.getElementById('list-wrapper-muscle');
+        const bWrapper = document.getElementById('list-wrapper-bone');
+
+        if (currentMode === "muscle") {
+            document.getElementById('box3-element').style.display = "none";
+            document.getElementById('box4-element').style.display = "none";
+            mWrapper.style.display = "block";
+            bWrapper.style.display = "none";
+        } else {
+            document.getElementById('box3-element').style.display = "block";
+            document.getElementById('box4-element').style.display = "block";
+            mWrapper.style.display = "none";
+            bWrapper.style.display = "block";
+        }
+
+        document.getElementById('card-section').classList.remove('show');
+        document.getElementById('toggle-list-btn').innerText = "カード一覧を表示";
+        
+        initCardList();
+        toggleMode();
+    }
+
+    // モード・状態のリセット
     function toggleMode() {
         resetRemainingPool();
         
-        current_upper_muscle = null;
-        current_lower_muscle = null;
-
-        document.getElementById('upper-label').innerText = "上肢筋";
-        document.getElementById('lower-label').innerText = "下肢筋";
-        document.getElementById('upper-result').innerText = "？？？";
-        document.getElementById('lower-result').innerText = "？？？";
-
-        document.getElementById('upper-box-element').classList.remove('finished');
-        document.getElementById('lower-box-element').classList.remove('finished');
+        for(let i = 1; i <= 4; i++) {
+            current_box_items[`box${i}`] = null;
+            document.getElementById(`box${i}-label`).innerText = "？？？";
+            document.getElementById(`box${i}-result`).innerText = "？？？";
+            const el = document.getElementById(`box${i}-element`);
+            el.className = 'display-box';
+        }
 
         document.getElementById('main-btn').innerText = "実技スタート";
         document.getElementById('main-btn').disabled = false;
     }
 
+    function updateBoxStyle(elementId, typeClass) {
+        const el = document.getElementById(elementId);
+        el.classList.remove('bg-upper', 'bg-lower', 'bg-trunk', 'bg-bone', 'finished');
+        if (typeClass) {
+            el.classList.add(`bg-${typeClass}`);
+        }
+    }
+
+    // クジ引き抽選処理
     function drawAll() {
         const isTestMode = document.getElementById('test-mode').checked;
+        const boxCount = (currentMode === "muscle") ? 2 : 4;
 
-        // チェックが入っている筋肉がベース
-        const currentActiveUpper = upper_box.filter(m => active_upper_map[m.name]);
-        const currentActiveLower = lower_box.filter(m => active_lower_map[m.name]);
+        // --- 【筋肉モード】の抽選アルゴリズム ---
+        if (currentMode === "muscle") {
+            const activeCategories = [];
+            if (upper_box.some(m => active_maps_muscle.upper[m.name])) activeCategories.push('upper');
+            if (lower_box.some(m => active_maps_muscle.lower[m.name])) activeCategories.push('lower');
+            if (trunk_box.some(m => active_maps_muscle.trunk[m.name])) activeCategories.push('trunk');
 
-        if (currentActiveUpper.length === 0 && currentActiveLower.length === 0) {
-            alert("カード一覧で少なくとも1つの筋肉にチェックを入れてください。");
-            return;
-        }
+            let totalActiveCount = remaining_pools.upper.length + remaining_pools.lower.length + remaining_pools.trunk.length;
+            if (!isTestMode) {
+                totalActiveCount = 0;
+                if(activeCategories.includes('upper')) totalActiveCount += upper_box.filter(m => active_maps_muscle.upper[m.name]).length;
+                if(activeCategories.includes('lower')) totalActiveCount += lower_box.filter(m => active_maps_muscle.lower[m.name]).length;
+                if(activeCategories.includes('trunk')) totalActiveCount += trunk_box.filter(m => active_maps_muscle.trunk[m.name]).length;
+            }
 
-        if (isTestMode) {
-            if (remaining_upper.length === 0 && remaining_lower.length === 0) {
+            if (totalActiveCount < boxCount && isTestMode) {
                 document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
                 document.getElementById('main-btn').disabled = true;
                 return;
+            } else if (totalActiveCount === 0) {
+                alert("少なくともいずれかの筋肉にチェックを入れてください。");
+                return;
             }
 
-            if (remaining_upper.length > 0) {
-                const upIndex = Math.floor(Math.random() * remaining_upper.length);
-                current_upper_muscle = remaining_upper.splice(upIndex, 1)[0];
-                document.getElementById('upper-result').innerText = current_upper_muscle.name;
-                document.getElementById('upper-label').innerText = `上肢筋（残り ${remaining_upper.length}）`;
-            } else {
-                current_upper_muscle = null;
-                document.getElementById('upper-result').innerText = "全問終了！";
-                document.getElementById('upper-box-element').classList.add('finished');
-            }
+            if (!isTestMode) {
+                // 通常（重複あり）モード
+                let tempPool = [];
+                activeCategories.forEach(cat => {
+                    const filtered = (cat === 'upper') ? upper_box.filter(m => active_maps_muscle.upper[m.name]) :
+                                     (cat === 'lower') ? lower_box.filter(m => active_maps_muscle.lower[m.name]) :
+                                                         trunk_box.filter(m => active_maps_muscle.trunk[m.name]);
+                    filtered.forEach(item => tempPool.push({ item, cat }));
+                });
 
-            if (remaining_lower.length > 0) {
-                const lowIndex = Math.floor(Math.random() * remaining_lower.length);
-                current_lower_muscle = remaining_lower.splice(lowIndex, 1)[0];
-                document.getElementById('lower-result').innerText = current_lower_muscle.name;
-                document.getElementById('lower-label').innerText = `下肢筋（残り ${remaining_lower.length}）`;
+                const labelNames = { upper: "上肢筋", lower: "下肢筋", trunk: "体幹筋" };
+                for (let i = 1; i <= boxCount; i++) {
+                    const idx = Math.floor(Math.random() * tempPool.length);
+                    const pulled = tempPool[idx];
+                    current_box_items[`box${i}`] = pulled.item;
+                    updateBoxStyle(`box${i}-element`, pulled.cat);
+                    document.getElementById(`box${i}-result`).innerText = pulled.item.name;
+                    document.getElementById(`box${i}-label`).innerText = labelNames[pulled.cat];
+                }
             } else {
-                current_lower_muscle = null;
-                document.getElementById('lower-result').innerText = "全問終了！";
-                document.getElementById('lower-box-element').classList.add('finished');
-            }
+                // 重複なしモード
+                const labelNames = { upper: "上肢筋", lower: "下肢筋", trunk: "体幹筋" };
+                for (let i = 1; i <= boxCount; i++) {
+                    let tempAvailable = [];
+                    if (remaining_pools.upper.length > 0) remaining_pools.upper.forEach(m => tempAvailable.push({item: m, cat: 'upper'}));
+                    if (remaining_pools.lower.length > 0) remaining_pools.lower.forEach(m => tempAvailable.push({item: m, cat: 'lower'}));
+                    if (remaining_pools.trunk.length > 0) remaining_pools.trunk.forEach(m => tempAvailable.push({item: m, cat: 'trunk'}));
 
-        } else {
-            // 通常ランダム（チェックONのものから選ぶ）
-            if (currentActiveUpper.length > 0) {
-                const upperIndex = Math.floor(Math.random() * currentActiveUpper.length);
-                current_upper_muscle = currentActiveUpper[upperIndex];
-                document.getElementById('upper-result').innerText = current_upper_muscle.name;
-            } else {
-                document.getElementById('upper-result').innerText = "対象なし";
-            }
+                    if (tempAvailable.length === 0) {
+                        current_box_items[`box${i}`] = null;
+                        document.getElementById(`box${i}-result`).innerText = "全問終了！";
+                        document.getElementById(`box${i}-element`).classList.add('finished');
+                        document.getElementById(`box${i}-label`).innerText = "終了";
+                        continue;
+                    }
 
-            if (currentActiveLower.length > 0) {
-                const lowerIndex = Math.floor(Math.random() * currentActiveLower.length);
-                current_lower_muscle = currentActiveLower[lowerIndex];
-                document.getElementById('lower-result').innerText = current_lower_muscle.name;
+                    const randIdx = Math.floor(Math.random() * tempAvailable.length);
+                    const chosen = tempAvailable[randIdx];
+
+                    const targetPool = remaining_pools[chosen.cat];
+                    const poolIdx = targetPool.findIndex(x => x.name === chosen.item.name);
+                    targetPool.splice(poolIdx, 1);
+
+                    current_box_items[`box${i}`] = chosen.item;
+                    updateBoxStyle(`box${i}-element`, chosen.cat);
+                    document.getElementById(`box${i}-result`).innerText = chosen.item.name;
+                    document.getElementById(`box${i}-label`).innerText = `${labelNames[chosen.cat]}（残り ${targetPool.length}）`;
+                }
+            }
+        } 
+        // --- 【骨モード】の抽選アルゴリズム (全体一括から4つ) ---
+        else {
+            let activeBones = bone_box.filter(b => active_maps_bone.bone[b.name]);
+            
+            if (isTestMode) {
+                if (remaining_pools.bone.length < boxCount) {
+                    // 残りが4つ未満なら、引ける分だけ引き、あとは終了表示
+                    for(let i = 1; i <= boxCount; i++) {
+                        if (remaining_pools.bone.length > 0) {
+                            const idx = Math.floor(Math.random() * remaining_pools.bone.length);
+                            const chosen = remaining_pools.bone.splice(idx, 1)[0];
+                            current_box_items[`box${i}`] = chosen;
+                            updateBoxStyle(`box${i}-element`, 'bone');
+                            document.getElementById(`box${i}-result`).innerText = chosen.name;
+                            document.getElementById(`box${i}-label`).innerText = `骨（残り ${remaining_pools.bone.length}）`;
+                        } else {
+                            current_box_items[`box${i}`] = null;
+                            document.getElementById(`box${i}-result`).innerText = "全問終了！";
+                            document.getElementById(`box${i}-element`).classList.add('finished');
+                            document.getElementById(`box${i}-label`).innerText = "終了";
+                        }
+                    }
+                    if(remaining_pools.bone.length === 0) {
+                        document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
+                        document.getElementById('main-btn').disabled = true;
+                    }
+                    return;
+                }
+                
+                // 重複なしモード（残高が4つ以上ある通常時）
+                for (let i = 1; i <= boxCount; i++) {
+                    const idx = Math.floor(Math.random() * remaining_pools.bone.length);
+                    const chosen = remaining_pools.bone.splice(idx, 1)[0];
+                    current_box_items[`box${i}`] = chosen;
+                    updateBoxStyle(`box${i}-element`, 'bone');
+                    document.getElementById(`box${i}-result`).innerText = chosen.name;
+                    document.getElementById(`box${i}-label`).innerText = `骨（残り ${remaining_pools.bone.length}）`;
+                }
             } else {
-                document.getElementById('lower-result').innerText = "対象なし";
+                // 通常（重複あり）モード：ただし1回の抽選内で4つのボックス間では被らないようにする
+                if (activeBones.length === 0) {
+                    alert("少なくともいずれかの骨にチェックを入れてください。");
+                    return;
+                }
+                
+                let tempBones = [...activeBones];
+                for (let i = 1; i <= boxCount; i++) {
+                    if (tempBones.length === 0) break;
+                    const idx = Math.floor(Math.random() * tempBones.length);
+                    // 選択肢が4つ以上あるなら重複を排除、足りない場合は重複を許可して描画
+                    const chosen = (activeBones.length >= 4) ? tempBones.splice(idx, 1)[0] : activeBones[Math.floor(Math.random() * activeBones.length)];
+                    
+                    current_box_items[`box${i}`] = chosen;
+                    updateBoxStyle(`box${i}-element`, 'bone');
+                    document.getElementById(`box${i}-result`).innerText = chosen.name;
+                    document.getElementById(`box${i}-label`).innerText = "骨";
+                }
             }
         }
     }
 
-    function showMemo(type) {
-        let targetMuscle = (type === 'upper') ? current_upper_muscle : current_lower_muscle;
-        if (!targetMuscle) return;
-        openModalWithData(targetMuscle.name, targetMuscle.memo);
+    function showMemo(boxType) {
+        let target = current_box_items[boxType];
+        if (!target) return;
+        openModalWithData(target.name, target.memo);
     }
 
     function openModalWithData(name, memo) {
@@ -524,79 +765,73 @@
         document.getElementById('memo-modal').classList.remove('show');
     }
 
-    // --- カード一覧・個別チェックボックスの処理 ---
+    // --- カード一覧の生成処理 ---
     function initCardList() {
-        const upperGrid = document.getElementById('upper-card-grid');
-        const lowerGrid = document.getElementById('lower-card-grid');
+        if (currentMode === "muscle") {
+            const upperGrid = document.getElementById('upper-card-grid');
+            const lowerGrid = document.getElementById('lower-card-grid');
+            const trunkGrid = document.getElementById('trunk-card-grid');
 
-        // 上肢筋カード
-        upper_box.forEach(muscle => {
-            upperGrid.appendChild(createMuscleCard(muscle, 'upper'));
-        });
+            upperGrid.innerHTML = ""; lowerGrid.innerHTML = ""; trunkGrid.innerHTML = "";
 
-        // 下肢筋カード
-        lower_box.forEach(muscle => {
-            lowerGrid.appendChild(createMuscleCard(muscle, 'lower'));
-        });
+            upper_box.forEach(m => upperGrid.appendChild(createCard(m, 'upper', active_maps_muscle.upper)));
+            lower_box.forEach(m => lowerGrid.appendChild(createCard(m, 'lower', active_maps_muscle.lower)));
+            trunk_box.forEach(m => trunkGrid.appendChild(createCard(m, 'trunk', active_maps_muscle.trunk)));
+        } else {
+            const boneGrid = document.getElementById('bone-card-grid');
+            boneGrid.innerHTML = "";
+            bone_box.forEach(b => boneGrid.appendChild(createCard(b, 'bone', active_maps_bone.bone)));
+        }
     }
 
-    // カードのHTML要素を組み立てる関数
-    function createMuscleCard(muscle, type) {
+    function createCard(item, typeClass, targetMap) {
         const card = document.createElement('div');
-        card.className = `muscle-card ${type}-card`;
-        card.id = `card-${type}-${muscle.name}`;
+        card.className = `muscle-card ${typeClass}-card`;
+        card.id = `card-${typeClass}-${item.name}`;
 
-        // チェックボックス
         const chk = document.createElement('input');
         chk.type = 'checkbox';
-        chk.checked = true;
+        chk.checked = targetMap[item.name];
         chk.className = 'card-checkbox';
+        
+        if (!chk.checked) card.classList.add('disabled');
+
         chk.onchange = (e) => {
             const isChecked = e.target.checked;
-            if (type === 'upper') {
-                active_upper_map[muscle.name] = isChecked;
-            } else {
-                active_lower_map[muscle.name] = isChecked;
-            }
+            targetMap[item.name] = isChecked;
             
-            // ビジュアルの切り替え
-            if (isChecked) {
-                card.classList.remove('disabled');
-            } else {
-                card.classList.add('disabled');
-            }
+            if (isChecked) card.classList.remove('disabled');
+            else card.classList.add('disabled');
             
-            // プールのリアルタイム更新
             resetRemainingPool();
         };
 
-        // 名前をクリックした時はメモを開くエリア
         const labelArea = document.createElement('div');
         labelArea.className = 'card-click-area';
-        labelArea.innerText = muscle.name;
-        labelArea.onclick = () => openModalWithData(muscle.name, muscle.memo);
+        labelArea.innerText = item.name;
+        labelArea.onclick = () => openModalWithData(item.name, item.memo);
 
         card.appendChild(chk);
         card.appendChild(labelArea);
         return card;
     }
 
-    // 「全選択/全解除」ボタンの処理
+    // 全選択・解除
     function bulkToggle(type) {
-        const grid = document.getElementById(`${type}-card-grid`);
+        const dataMap = (currentMode === "muscle") ? active_maps_muscle[type] : active_maps_bone.bone;
+        const items = (type === 'upper') ? upper_box : (type === 'lower') ? lower_box : (type === 'trunk') ? trunk_box : bone_box;
+        const gridId = (currentMode === "muscle") ? `${type}-card-grid` : 'bone-card-grid';
+        
+        const grid = document.getElementById(gridId);
         const checkboxes = grid.querySelectorAll('.card-checkbox');
-        const map = (type === 'upper') ? active_upper_map : active_lower_map;
-        const box = (type === 'upper') ? upper_box : lower_box;
 
-        // 現在1つでもチェックが入っていたら「全解除」、すべて外れていたら「全選択」にする
         const anyChecked = Array.from(checkboxes).some(c => c.checked);
         const nextState = !anyChecked;
 
         checkboxes.forEach(c => c.checked = nextState);
-        box.forEach(m => map[m.name] = nextState);
+        items.forEach(m => dataMap[m.name] = nextState);
 
-        // 各カード要素の disabled クラスを一括制御
-        box.forEach(m => {
+        items.forEach(m => {
             const cardEl = document.getElementById(`card-${type}-${m.name}`);
             if (cardEl) {
                 if (nextState) cardEl.classList.remove('disabled');
@@ -609,7 +844,7 @@
 
     function toggleCardSection() {
         const section = document.getElementById('card-section');
-        const toggleBtn = document.querySelector('.card-section-toggle');
+        const toggleBtn = document.getElementById('toggle-list-btn');
         
         section.classList.toggle('show');
         
