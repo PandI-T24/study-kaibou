@@ -78,7 +78,7 @@
         .bg-upper { background-color: #eff6ff; border-color: #bfdbfe; }
         .bg-lower { background-color: #fef2f2; border-color: #fecaca; }
         .bg-trunk { background-color: #f0fdf4; border-color: #bbf7d0; }
-        .bg-bone  { background-color: #f5f5f4; border-color: #e7e5e4; } /* 骨専用のニュートラルカラー */
+        .bg-bone  { background-color: #f5f5f4; border-color: #e7e5e4; }
 
         /* 終了した箱の見た目（グレーダウン） */
         .display-box.finished {
@@ -306,7 +306,6 @@
 <body>
 
 <div class="container">
-    <!-- 筋肉・骨の切り替え設定 -->
     <div class="mode-settings">
         <div class="mode-switch-wrap">
             <label><input type="radio" name="target-type" value="muscle" checked onchange="switchTargetType()">筋肉</label>
@@ -318,7 +317,6 @@
         </div>
     </div>
 
-    <!-- 抽選結果表示ボックス（4つ） -->
     <div id="box1-element" class="display-box">
         <div id="box1-label" class="label">？？？</div>
         <div id="box1-result" class="result-text" onclick="showMemo('box1')">？？？</div>
@@ -344,7 +342,6 @@
 
 <button id="toggle-list-btn" class="card-section-toggle" onclick="toggleCardSection()">カード一覧を表示</button>
 
-<!-- 共通コンテナ（JSにより筋肉用と骨用で動的に見出しや構成を切り替える） -->
 <div id="card-section" class="card-container">
     <div id="list-wrapper-muscle">
         <div class="card-header-wrap">
@@ -375,7 +372,6 @@
     </div>
 </div>
 
-<!-- モーダル構造 -->
 <div id="memo-modal" class="modal-overlay" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div id="modal-muscle-name" class="modal-title">名称</div>
@@ -448,96 +444,88 @@
         { name: "腰方形筋", memo: "" }
     ];
 
-    // --- 骨データ（1つの大きな全体プールとして定義） ---
-const bone_box = [
-    // 脊柱・体幹
-    { name: "C7/T1棘突起", memo: "" },
-    { name: "T2棘突起", memo: "" },
-    { name: "T3棘突起", memo: "" },
-    { name: "T7棘突起", memo: "" },
-    { name: "L4棘突起", memo: "" },
-    { name: "胸骨角", memo: "" },
-    { name: "第2肋骨", memo: "" },
-    { name: "第4肋骨", memo: "" },
-    { name: "第10肋骨", memo: "" },
-    { name: "腸骨稜", memo: "" },
-    { name: "上前腸骨棘", memo: "" },
-    { name: "下前腸骨棘", memo: "" },
-    { name: "上後腸骨棘", memo: "" },
-    { name: "坐骨結節", memo: "" },
-    // 肩甲帯・上肢
-    { name: "肩甲骨上角", memo: "" },
-    { name: "肩甲骨下角", memo: "" },
-    { name: "肩甲骨内側縁", memo: "" },
-    { name: "胸鎖関節", memo: "" },
-    { name: "肩鎖関節", memo: "" },
-    { name: "肩峰", memo: "" },
-    { name: "肩甲棘", memo: "" },
-    { name: "烏口突起", memo: "" },
-    { name: "上腕骨大結節", memo: "" },
-    { name: "上腕骨小結節", memo: "" },
-    { name: "上腕骨結節間溝", memo: "" },
-    { name: "上腕骨内側上顆", memo: "" },
-    { name: "上腕骨外側上顆", memo: "" },
-    { name: "上腕骨小頭", memo: "" },
-    { name: "上腕骨滑車", memo: "" },
-    { name: "上腕骨頚体角", memo: "" },
-    { name: "上腕骨後捻角", memo: "" },
-    { name: "上腕骨解剖頚", memo: "" },
-    { name: "上腕骨外科頚", memo: "" },
-    { name: "三角筋粗面", memo: "" },
-    { name: "橈骨神経溝", memo: "" },
-    { name: "尺骨神経溝", memo: "" },
-    { name: "腕尺関節", memo: "" },
-    { name: "腕橈関節", memo: "" },
-    { name: "上橈尺関節", memo: "" },
-    { name: "下橈尺関節", memo: "" },
-    { name: "肘頭", memo: "" },
-    { name: "内側顆上稜", memo: "" },
-    { name: "外側顆上稜", memo: "" },
-    { name: "内側上顆", memo: "" },
-    { name: "外側上顆", memo: "" },
-    { name: "鈎突窩", memo: "" },
-    { name: "肘頭窩", memo: "" },
-    { name: "橈骨窩", memo: "" },
-    { name: "近位手根骨の名称", memo: "" },
-    { name: "遠位手根骨の名称", memo: "" },
-    // 下肢・足部
-    { name: "大転子", memo: "" },
-    { name: "ローザー・ネラトン線", memo: "" },
-    { name: "ヒューター線", memo: "" },
-    { name: "ヒューター三角", memo: "" },
-    { name: "外側上顆", memo: "" },
-    { name: "内側上顆", memo: "" },
-    { name: "内転筋結節", memo: "" },
-    { name: "膝蓋骨", memo: "" },
-    { name: "Qアングル", memo: "" },
-    { name: "FTA角", memo: "" },
-    { name: "膝関節裂隙", memo: "" },
-    { name: "脛骨粗面", memo: "" },
-    { name: "腓骨頭", memo: "" },
-    { name: "外果", memo: "" },
-    { name: "内果", memo: "" },
-    { name: "距骨", memo: "" },
-    { name: "舟状骨", memo: "" },
-    { name: "踵骨", memo: "" },
-    { name: "内側縦アーチ", memo: "" },
-    { name: "ガーディー結節", memo: "" }
-];
+    // --- 骨データ ---
+    const bone_box = [
+        { name: "C7/T1棘突起", memo: "" },
+        { name: "T2棘突起", memo: "" },
+        { name: "T3棘突起", memo: "" },
+        { name: "T7棘突起", memo: "" },
+        { name: "L4棘突起", memo: "" },
+        { name: "胸骨角", memo: "" },
+        { name: "第2肋骨", memo: "" },
+        { name: "第4肋骨", memo: "" },
+        { name: "第10肋骨", memo: "" },
+        { name: "腸骨稜", memo: "" },
+        { name: "上前腸骨棘", memo: "" },
+        { name: "下前腸骨棘", memo: "" },
+        { name: "上後腸骨棘", memo: "" },
+        { name: "坐骨結節", memo: "" },
+        { name: "肩甲骨上角", memo: "" },
+        { name: "肩甲骨下角", memo: "" },
+        { name: "肩甲骨内側縁", memo: "" },
+        { name: "胸鎖関節", memo: "" },
+        { name: "肩鎖関節", memo: "" },
+        { name: "肩峰", memo: "" },
+        { name: "肩甲棘", memo: "" },
+        { name: "烏口突起", memo: "" },
+        { name: "上腕骨大結節", memo: "" },
+        { name: "上腕骨小結節", memo: "" },
+        { name: "上腕骨結節間溝", memo: "" },
+        { name: "上腕骨内側上顆", memo: "" },
+        { name: "上腕骨外側上顆", memo: "" },
+        { name: "上腕骨小頭", memo: "" },
+        { name: "上腕骨滑車", memo: "" },
+        { name: "上腕骨頚体角", memo: "" },
+        { name: "上腕骨後捻角", memo: "" },
+        { name: "上腕骨解剖頚", memo: "" },
+        { name: "上腕骨外科頚", memo: "" },
+        { name: "三角筋粗面", memo: "" },
+        { name: "橈骨神経溝", memo: "" },
+        { name: "尺骨神経溝", memo: "" },
+        { name: "腕尺関節", memo: "" },
+        { name: "腕橈関節", memo: "" },
+        { name: "上橈尺関節", memo: "" },
+        { name: "下橈尺関節", memo: "" },
+        { name: "肘頭", memo: "" },
+        { name: "内側顆上稜", memo: "" },
+        { name: "外側顆上稜", memo: "" },
+        { name: "内側上顆", memo: "" },
+        { name: "外側上顆", memo: "" },
+        { name: "鈎突窩", memo: "" },
+        { name: "肘頭窩", memo: "" },
+        { name: "橈骨窩", memo: "" },
+        { name: "近位手根骨の名称", memo: "" },
+        { name: "遠位手根骨の名称", memo: "" },
+        { name: "大転子", memo: "" },
+        { name: "ローザー・ネラトン線", memo: "" },
+        { name: "ヒューター線", memo: "" },
+        { name: "ヒューター三角", memo: "" },
+        { name: "外側上顆", memo: "" },
+        { name: "内側上顆", memo: "" },
+        { name: "内転筋結節", memo: "" },
+        { name: "膝蓋骨", memo: "" },
+        { name: "Qアングル", memo: "" },
+        { name: "FTA角", memo: "" },
+        { name: "膝関節裂隙", memo: "" },
+        { name: "脛骨粗面", memo: "" },
+        { name: "腓骨頭", memo: "" },
+        { name: "外果", memo: "" },
+        { name: "内果", memo: "" },
+        { name: "距骨", memo: "" },
+        { name: "舟状骨", memo: "" },
+        { name: "踵骨", memo: "" },
+        { name: "内側縦アーチ", memo: "" },
+        { name: "ガーディー結節", memo: "" }
+    ];
 
     // 状態管理変数
-    let currentMode = "muscle"; // "muscle" or "bone"
+    let currentMode = "muscle";
     let current_box_items = { box1: null, box2: null, box3: null, box4: null };
-    
-    // 重複なしモード（テストモード）用の残りアイテムプール
     let remaining_pools = { upper: [], lower: [], trunk: [], bone: [] };
-    
-    // チェックボックス有効化マップ
     let active_maps_muscle = { upper: {}, lower: {}, trunk: {} };
     let active_maps_bone = { bone: {} };
 
     window.onload = function() {
-        // 初期アクティブマップの構築
         upper_box.forEach(m => active_maps_muscle.upper[m.name] = true);
         lower_box.forEach(m => active_maps_muscle.lower[m.name] = true);
         trunk_box.forEach(m => active_maps_muscle.trunk[m.name] = true);
@@ -547,7 +535,6 @@ const bone_box = [
         resetRemainingPool();
     };
 
-    // 残りプールをリセット
     function resetRemainingPool() {
         if (currentMode === "muscle") {
             remaining_pools.upper = upper_box.filter(m => active_maps_muscle.upper[m.name]);
@@ -558,7 +545,6 @@ const bone_box = [
         }
     }
 
-    // 筋肉と骨の切り替え処理
     function switchTargetType() {
         const selected = document.querySelector('input[name="target-type"]:checked').value;
         currentMode = selected;
@@ -585,18 +571,15 @@ const bone_box = [
         toggleMode();
     }
 
-    // モード・状態のリセット
     function toggleMode() {
         resetRemainingPool();
-        
         for(let i = 1; i <= 4; i++) {
             current_box_items[`box${i}`] = null;
             document.getElementById(`box${i}-label`).innerText = "？？？";
-            document.getElementById(`box${i}-result`).innerText = "？？？";
+            document.getElementById(`box` + i + `-result`).innerText = "？？？";
             const el = document.getElementById(`box${i}-element`);
             el.className = 'display-box';
         }
-
         document.getElementById('main-btn').innerText = "実技スタート";
         document.getElementById('main-btn').disabled = false;
     }
@@ -609,7 +592,6 @@ const bone_box = [
         }
     }
 
-    // クジ引き抽選処理
     function drawAll() {
         const isTestMode = document.getElementById('test-mode').checked;
         const boxCount = (currentMode === "muscle") ? 2 : 4;
@@ -638,35 +620,76 @@ const bone_box = [
                 return;
             }
 
+            const labelNames = { upper: "上肢筋", lower: "下肢筋", trunk: "体幹筋" };
+
             if (!isTestMode) {
-                // 通常（重複あり）モード
-                let tempPool = [];
-                activeCategories.forEach(cat => {
+                // 通常（重複あり・部位被りなし）モード
+                let availableCategories = [...activeCategories];
+                
+                if (availableCategories.length < 2) {
+                    alert("部位の重複を防ぐため、上肢・下肢・体幹のうち【最低2つ以上のカテゴリ】にチェックを入れてください。");
+                    return;
+                }
+
+                let chosenCategories = [];
+                for (let i = 0; i < boxCount; i++) {
+                    const catIdx = Math.floor(Math.random() * availableCategories.length);
+                    chosenCategories.push(availableCategories.splice(catIdx, 1)[0]);
+                }
+
+                for (let i = 1; i <= boxCount; i++) {
+                    const cat = chosenCategories[i - 1];
                     const filtered = (cat === 'upper') ? upper_box.filter(m => active_maps_muscle.upper[m.name]) :
                                      (cat === 'lower') ? lower_box.filter(m => active_maps_muscle.lower[m.name]) :
                                                          trunk_box.filter(m => active_maps_muscle.trunk[m.name]);
-                    filtered.forEach(item => tempPool.push({ item, cat }));
-                });
-
-                const labelNames = { upper: "上肢筋", lower: "下肢筋", trunk: "体幹筋" };
-                for (let i = 1; i <= boxCount; i++) {
-                    const idx = Math.floor(Math.random() * tempPool.length);
-                    const pulled = tempPool[idx];
-                    current_box_items[`box${i}`] = pulled.item;
-                    updateBoxStyle(`box${i}-element`, pulled.cat);
-                    document.getElementById(`box${i}-result`).innerText = pulled.item.name;
-                    document.getElementById(`box${i}-label`).innerText = labelNames[pulled.cat];
+                    
+                    const idx = Math.floor(Math.random() * filtered.length);
+                    const pulled = filtered[idx];
+                    current_box_items[`box${i}`] = pulled;
+                    updateBoxStyle(`box${i}-element`, cat);
+                    document.getElementById(`box${i}-result`).innerText = pulled.name;
+                    document.getElementById(`box${i}-label`).innerText = labelNames[cat];
                 }
             } else {
-                // 重複なしモード
-                const labelNames = { upper: "上肢筋", lower: "下肢筋", trunk: "体幹筋" };
-                for (let i = 1; i <= boxCount; i++) {
-                    let tempAvailable = [];
-                    if (remaining_pools.upper.length > 0) remaining_pools.upper.forEach(m => tempAvailable.push({item: m, cat: 'upper'}));
-                    if (remaining_pools.lower.length > 0) remaining_pools.lower.forEach(m => tempAvailable.push({item: m, cat: 'lower'}));
-                    if (remaining_pools.trunk.length > 0) remaining_pools.trunk.forEach(m => tempAvailable.push({item: m, cat: 'trunk'}));
+                // 重複なし・部位被りなし（不可避なら被せを許可）モード
+                // 現在残っている部位のプールを調べる
+                let availablePoolCategories = [];
+                if (remaining_pools.upper.length > 0) availablePoolCategories.push('upper');
+                if (remaining_pools.lower.length > 0) availablePoolCategories.push('lower');
+                if (remaining_pools.trunk.length > 0) availablePoolCategories.push('trunk');
 
-                    if (tempAvailable.length === 0) {
+                let chosenCategories = [];
+
+                if (availablePoolCategories.length >= 2) {
+                    // まだ異なる2つの部位から1つずつ選べる状態なら、被らないようにカテゴリを選ぶ
+                    for (let i = 0; i < boxCount; i++) {
+                        const catIdx = Math.floor(Math.random() * availablePoolCategories.length);
+                        chosenCategories.push(availablePoolCategories.splice(catIdx, 1)[0]);
+                    }
+                } else {
+                    // 残りのカテゴリが1種類（例: 上肢筋のみ）あるいはプール全体が残り少ない場合は
+                    // 被りを気にせず、残っているすべてのアイテムを合体させてそこからランダムに引く
+                    let fallbackPool = [];
+                    availablePoolCategories.forEach(cat => {
+                        remaining_pools[cat].forEach(m => fallbackPool.push({ item: m, cat: cat }));
+                    });
+
+                    for (let i = 0; i < boxCount; i++) {
+                        if (fallbackPool.length > 0) {
+                            const randIdx = Math.floor(Math.random() * fallbackPool.length);
+                            const picked = fallbackPool.splice(randIdx, 1)[0];
+                            chosenCategories.push(picked.cat);
+                        } else {
+                            chosenCategories.push(null); // もう本当に何もない場合
+                        }
+                    }
+                }
+
+                // 割り振られたカテゴリを元に実際の筋肉アイテムを確定させて画面に反映する
+                for (let i = 1; i <= boxCount; i++) {
+                    const cat = chosenCategories[i - 1];
+
+                    if (!cat || remaining_pools[cat].length === 0) {
                         current_box_items[`box${i}`] = null;
                         document.getElementById(`box${i}-result`).innerText = "全問終了！";
                         document.getElementById(`box${i}-element`).classList.add('finished');
@@ -674,17 +697,20 @@ const bone_box = [
                         continue;
                     }
 
-                    const randIdx = Math.floor(Math.random() * tempAvailable.length);
-                    const chosen = tempAvailable[randIdx];
+                    const targetPool = remaining_pools[cat];
+                    const randIdx = Math.floor(Math.random() * targetPool.length);
+                    const chosenItem = targetPool.splice(randIdx, 1)[0];
 
-                    const targetPool = remaining_pools[chosen.cat];
-                    const poolIdx = targetPool.findIndex(x => x.name === chosen.item.name);
-                    targetPool.splice(poolIdx, 1);
+                    current_box_items[`box${i}`] = chosenItem;
+                    updateBoxStyle(`box${i}-element`, cat);
+                    document.getElementById(`box${i}-result`).innerText = chosenItem.name;
+                    document.getElementById(`box${i}-label`).innerText = `${labelNames[cat]}（残り ${targetPool.length}）`;
+                }
 
-                    current_box_items[`box${i}`] = chosen.item;
-                    updateBoxStyle(`box${i}-element`, chosen.cat);
-                    document.getElementById(`box${i}-result`).innerText = chosen.item.name;
-                    document.getElementById(`box${i}-label`).innerText = `${labelNames[chosen.cat]}（残り ${targetPool.length}）`;
+                // すべてのプールが本当にゼロになったら終了処理をする
+                if (remaining_pools.upper.length === 0 && remaining_pools.lower.length === 0 && remaining_pools.trunk.length === 0) {
+                    document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
+                    document.getElementById('main-btn').disabled = true;
                 }
             }
         } 
@@ -694,7 +720,6 @@ const bone_box = [
             
             if (isTestMode) {
                 if (remaining_pools.bone.length < boxCount) {
-                    // 残りが4つ未満なら、引ける分だけ引き、あとは終了表示
                     for(let i = 1; i <= boxCount; i++) {
                         if (remaining_pools.bone.length > 0) {
                             const idx = Math.floor(Math.random() * remaining_pools.bone.length);
@@ -717,7 +742,6 @@ const bone_box = [
                     return;
                 }
                 
-                // 重複なしモード（残高が4つ以上ある通常時）
                 for (let i = 1; i <= boxCount; i++) {
                     const idx = Math.floor(Math.random() * remaining_pools.bone.length);
                     const chosen = remaining_pools.bone.splice(idx, 1)[0];
@@ -727,7 +751,6 @@ const bone_box = [
                     document.getElementById(`box${i}-label`).innerText = `骨（残り ${remaining_pools.bone.length}）`;
                 }
             } else {
-                // 通常（重複あり）モード：ただし1回の抽選内で4つのボックス間では被らないようにする
                 if (activeBones.length === 0) {
                     alert("少なくともいずれかの骨にチェックを入れてください。");
                     return;
@@ -737,7 +760,6 @@ const bone_box = [
                 for (let i = 1; i <= boxCount; i++) {
                     if (tempBones.length === 0) break;
                     const idx = Math.floor(Math.random() * tempBones.length);
-                    // 選択肢が4つ以上あるなら重複を排除、足りない場合は重複を許可して描画
                     const chosen = (activeBones.length >= 4) ? tempBones.splice(idx, 1)[0] : activeBones[Math.floor(Math.random() * activeBones.length)];
                     
                     current_box_items[`box${i}`] = chosen;
@@ -765,7 +787,6 @@ const bone_box = [
         document.getElementById('memo-modal').classList.remove('show');
     }
 
-    // --- カード一覧の生成処理 ---
     function initCardList() {
         if (currentMode === "muscle") {
             const upperGrid = document.getElementById('upper-card-grid');
@@ -816,27 +837,26 @@ const bone_box = [
         return card;
     }
 
-    // 全選択・解除
     function bulkToggle(type) {
         const dataMap = (currentMode === "muscle") ? active_maps_muscle[type] : active_maps_bone.bone;
         const items = (type === 'upper') ? upper_box : (type === 'lower') ? lower_box : (type === 'trunk') ? trunk_box : bone_box;
         const gridId = (currentMode === "muscle") ? `${type}-card-grid` : 'bone-card-grid';
         
         const grid = document.getElementById(gridId);
-        const checkboxes = grid.querySelectorAll('.card-checkbox');
+        const cards = grid.querySelectorAll('.muscle-card');
 
-        const anyChecked = Array.from(checkboxes).some(c => c.checked);
+        const anyChecked = Array.from(grid.querySelectorAll('.card-checkbox')).some(c => c.checked);
         const nextState = !anyChecked;
 
-        checkboxes.forEach(c => c.checked = nextState);
-        items.forEach(m => dataMap[m.name] = nextState);
+        cards.forEach(card => {
+            const chk = card.querySelector('.card-checkbox');
+            const name = card.querySelector('.card-click-area').innerText;
+            
+            if (chk) chk.checked = nextState;
+            dataMap[name] = nextState;
 
-        items.forEach(m => {
-            const cardEl = document.getElementById(`card-${type}-${m.name}`);
-            if (cardEl) {
-                if (nextState) cardEl.classList.remove('disabled');
-                else cardEl.classList.add('disabled');
-            }
+            if (nextState) card.classList.remove('disabled');
+            else card.classList.add('disabled');
         });
 
         resetRemainingPool();
