@@ -73,7 +73,7 @@
             border: 1px solid #d1d5db;
             background-color: #f9fafb;
         }
-        
+
         /* カテゴリ・モードごとの動的カラークラス */
         .bg-upper { background-color: #eff6ff; border-color: #bfdbfe; }
         .bg-lower { background-color: #fef2f2; border-color: #fecaca; }
@@ -162,7 +162,43 @@
         .card-container.show {
             display: block;
         }
-        
+
+        /* フィルターコントロールのスタイル */
+        .filter-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .filter-control {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-control label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background-color: white;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
         /* 見出しと一括操作ボタンのレイアウト */
         .card-header-wrap {
             display: flex;
@@ -180,7 +216,7 @@
         .lower-title { color: #b91c1c; }
         .trunk-title { color: #15803d; }
         .bone-title  { color: #57534e; }
-        
+
         .bulk-btn {
             padding: 4px 10px;
             font-size: 0.8rem;
@@ -202,7 +238,7 @@
             border-top: 2px solid #f3f4f6;
             padding-top: 10px;
         }
-        
+
         /* カード共通 */
         .muscle-card {
             padding: 12px 8px;
@@ -343,22 +379,66 @@
 <button id="toggle-list-btn" class="card-section-toggle" onclick="toggleCardSection()">カード一覧を表示</button>
 
 <div id="card-section" class="card-container">
+    <div class="filter-wrapper">
+        <div class="filter-control">
+            <label for="search-keyword">キーワード検索 (名称・起始・停止など)</label>
+            <input type="text" id="search-keyword" class="filter-input" placeholder="例: 大腿骨, 橈骨..." oninput="filterCards()">
+        </div>
+        <div class="filter-control" id="nerve-filter-wrap">
+            <label for="search-nerve">支配神経で絞り込み</label>
+            <select id="search-nerve" class="filter-input" onchange="filterCards()">
+                <option value="">すべての神経</option>
+                <option value="筋皮神経">筋皮神経</option>
+                <option value="橈骨神経">橈骨神経 (後骨間含む)</option>
+                <option value="正中神経">正中神経</option>
+                <option value="尺骨神経">尺骨神経</option>
+                <option value="大腿神経">大腿神経</option>
+                <option value="閉鎖神経">閉鎖神経</option>
+                <option value="脛骨神経">脛骨神経</option>
+                <option value="腓骨神経">腓骨神経 (深・浅)</option>
+                <option value="副神経">副神経・頸神経</option>
+            </select>
+        </div>
+        <div class="filter-control" id="action-filter-wrap">
+            <label for="search-action">作用で絞り込み</label>
+            <select id="search-action" class="filter-input" onchange="filterCards()">
+                <option value="">すべての作用</option>
+                <option value="屈曲">屈曲</option>
+                <option value="伸展">伸展</option>
+                <option value="外転">外転</option>
+                <option value="内転">内転</option>
+                <option value="外旋">外旋</option>
+                <option value="内旋">内旋</option>
+                <option value="回内">回内</option>
+                <option value="回外">回外</option>
+                <option value="挙上">挙上</option>
+                <option value="下制">下制</option>
+                <option value="上方回旋">上方回旋</option>
+                <option value="下方回旋">下方回旋</option>
+                <option value="背屈">背屈</option>
+                <option value="底屈">底屈 / 掌屈</option>
+                <option value="内がえし">内がえし</option>
+                <option value="外がえし">外がえし</option>
+            </select>
+        </div>
+    </div>
+
     <div id="list-wrapper-muscle">
         <div class="card-header-wrap">
             <div class="card-subtitle upper-title">上肢筋 一覧</div>
-            <button class="bulk-btn" onclick="bulkToggle('upper')">全選択/解除</button>
+            <button class="bulk-btn" onclick="bulkToggle('upper')">見えているカードを全選択/解除</button>
         </div>
         <div id="upper-card-grid" class="card-grid"></div>
 
         <div class="card-header-wrap">
             <div class="card-subtitle lower-title">下肢筋 一覧</div>
-            <button class="bulk-btn" onclick="bulkToggle('lower')">全選択/解除</button>
+            <button class="bulk-btn" onclick="bulkToggle('lower')">見えているカードを全選択/解除</button>
         </div>
         <div id="lower-card-grid" class="card-grid"></div>
 
         <div class="card-header-wrap">
             <div class="card-subtitle trunk-title">体幹筋 一覧</div>
-            <button class="bulk-btn" onclick="bulkToggle('trunk')">全選択/解除</button>
+            <button class="bulk-btn" onclick="bulkToggle('trunk')">見えているカードを全選択/解除</button>
         </div>
         <div id="trunk-card-grid" class="card-grid"></div>
     </div>
@@ -366,7 +446,7 @@
     <div id="list-wrapper-bone" style="display: none;">
         <div class="card-header-wrap">
             <div class="card-subtitle bone-title">骨 全体一覧</div>
-            <button class="bulk-btn" onclick="bulkToggle('bone')">全選択/解除</button>
+            <button class="bulk-btn" onclick="bulkToggle('bone')">見えているカードを全選択/解除</button>
         </div>
         <div id="bone-card-grid" class="card-grid"></div>
     </div>
@@ -551,22 +631,33 @@
 
         const mWrapper = document.getElementById('list-wrapper-muscle');
         const bWrapper = document.getElementById('list-wrapper-bone');
+        const nerveFilter = document.getElementById('nerve-filter-wrap');
+        const actionFilter = document.getElementById('action-filter-wrap');
+
+        // フィルターの入力をすべてクリア
+        document.getElementById('search-keyword').value = "";
+        document.getElementById('search-nerve').value = "";
+        document.getElementById('search-action').value = "";
 
         if (currentMode === "muscle") {
             document.getElementById('box3-element').style.display = "none";
             document.getElementById('box4-element').style.display = "none";
             mWrapper.style.display = "block";
             bWrapper.style.display = "none";
+            nerveFilter.style.display = "flex";
+            actionFilter.style.display = "flex";
         } else {
             document.getElementById('box3-element').style.display = "block";
             document.getElementById('box4-element').style.display = "block";
             mWrapper.style.display = "none";
             bWrapper.style.display = "block";
+            nerveFilter.style.display = "none";
+            actionFilter.style.display = "none";
         }
 
         document.getElementById('card-section').classList.remove('show');
         document.getElementById('toggle-list-btn').innerText = "カード一覧を表示";
-        
+
         initCardList();
         toggleMode();
     }
@@ -596,7 +687,7 @@
         const isTestMode = document.getElementById('test-mode').checked;
         let boxCount = (currentMode === "muscle") ? 2 : 4;
 
-        // ボックス表示を初期化（前の回の終了表示などをクリア）
+        // ボックス表示を初期化
         for(let i = 1; i <= 4; i++) {
             document.getElementById(`box${i}-label`).innerText = "？？？";
             document.getElementById(`box${i}-result`).innerText = "？？？";
@@ -629,7 +720,6 @@
                 return;
             }
 
-            // 【新ロジック】重複なしモードで残り合計が1個しかない場合は、引く数を1個に変更する
             if (isTestMode && totalActiveCount === 1) {
                 boxCount = 1;
             }
@@ -637,9 +727,8 @@
             const labelNames = { upper: "上肢筋", lower: "下肢筋", trunk: "体幹筋" };
 
             if (!isTestMode) {
-                // 通常（重複あり・部位被りなし）モード
                 let availableCategories = [...activeCategories];
-                
+
                 if (availableCategories.length < 2) {
                     alert("部位の重複を防ぐため、上肢・下肢・体幹のうち【最低2つ以上のカテゴリ】にチェックを入れてください。");
                     return;
@@ -656,7 +745,7 @@
                     const filtered = (cat === 'upper') ? upper_box.filter(m => active_maps_muscle.upper[m.name]) :
                                      (cat === 'lower') ? lower_box.filter(m => active_maps_muscle.lower[m.name]) :
                                                          trunk_box.filter(m => active_maps_muscle.trunk[m.name]);
-                    
+
                     const idx = Math.floor(Math.random() * filtered.length);
                     const pulled = filtered[idx];
                     current_box_items[`box${i}`] = pulled;
@@ -665,7 +754,6 @@
                     document.getElementById(`box${i}-label`).innerText = labelNames[cat];
                 }
             } else {
-                // 重複なし・部位被りなし（不可避なら被せを許可）モード
                 let availablePoolCategories = [];
                 if (remaining_pools.upper.length > 0) availablePoolCategories.push('upper');
                 if (remaining_pools.lower.length > 0) availablePoolCategories.push('lower');
@@ -673,16 +761,13 @@
 
                 let chosenCategories = [];
 
-                // ボックスを埋めるためのカテゴリを割り振る
                 if (availablePoolCategories.length >= boxCount) {
-                    // 各ボックスに被らないように別々のカテゴリを割り当てる
                     let tempCats = [...availablePoolCategories];
                     for (let i = 0; i < boxCount; i++) {
                         const catIdx = Math.floor(Math.random() * tempCats.length);
                         chosenCategories.push(tempCats.splice(catIdx, 1)[0]);
                     }
                 } else {
-                    // カテゴリの種類が足りない（被り発生、または残り総数1個）場合
                     let fallbackPool = [];
                     availablePoolCategories.forEach(cat => {
                         remaining_pools[cat].forEach(m => fallbackPool.push({ item: m, cat: cat }));
@@ -699,11 +784,9 @@
                     }
                 }
 
-                // 割り振られたカテゴリから実際に抽選し、画面にセット
                 for (let i = 1; i <= 2; i++) {
                     const cat = chosenCategories[i - 1];
 
-                    // 引く指定（cat）がないか、もう引けない場合は「出題なし（空欄）」にする
                     if (!cat || remaining_pools[cat].length === 0) {
                         current_box_items[`box${i}`] = null;
                         document.getElementById(`box${i}-result`).innerText = "（出題なし）";
@@ -721,21 +804,19 @@
                     document.getElementById(`box${i}-label`).innerText = `${labelNames[cat]}（残り ${targetPool.length}）`;
                 }
 
-                // すべて引ききったかチェック
                 if (remaining_pools.upper.length === 0 && remaining_pools.lower.length === 0 && remaining_pools.trunk.length === 0) {
                     document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
                     document.getElementById('main-btn').disabled = true;
                 }
             }
         } 
-        // --- 【骨モード】の抽選アルゴリズム (全体一括から4つ) ---
+        // --- 【骨モード】の抽選アルゴリズム ---
         else {
             let activeBones = bone_box.filter(b => active_maps_bone.bone[b.name]);
-            
+
             if (isTestMode) {
-                // 骨モードでも残り件数に合わせて1〜4つを適切に表示する
                 const pullCount = Math.min(boxCount, remaining_pools.bone.length);
-                
+
                 if (pullCount === 0) {
                     document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
                     document.getElementById('main-btn').disabled = true;
@@ -756,7 +837,7 @@
                         document.getElementById(`box${i}-label`).innerText = "ーーー";
                     }
                 }
-                
+
                 if(remaining_pools.bone.length === 0) {
                     document.getElementById('main-btn').innerText = "すべての問題が終了しました！";
                     document.getElementById('main-btn').disabled = true;
@@ -766,13 +847,13 @@
                     alert("少なくともいずれかの骨にチェックを入れてください。");
                     return;
                 }
-                
+
                 let tempBones = [...activeBones];
                 for (let i = 1; i <= boxCount; i++) {
                     if (tempBones.length === 0) break;
                     const idx = Math.floor(Math.random() * tempBones.length);
                     const chosen = (activeBones.length >= 4) ? tempBones.splice(idx, 1)[0] : activeBones[Math.floor(Math.random() * activeBones.length)];
-                    
+
                     current_box_items[`box${i}`] = chosen;
                     updateBoxStyle(`box${i}-element`, 'bone');
                     document.getElementById(`box${i}-result`).innerText = chosen.name;
@@ -814,27 +895,31 @@
             boneGrid.innerHTML = "";
             bone_box.forEach(b => boneGrid.appendChild(createCard(b, 'bone', active_maps_bone.bone)));
         }
+        filterCards(); // リスト初期化時に現在のフィルターを適用
     }
 
     function createCard(item, typeClass, targetMap) {
         const card = document.createElement('div');
         card.className = `muscle-card ${typeClass}-card`;
         card.id = `card-${typeClass}-${item.name}`;
+        
+        card.setAttribute('data-name', item.name);
+        card.setAttribute('data-memo', item.memo || '');
 
         const chk = document.createElement('input');
         chk.type = 'checkbox';
         chk.checked = targetMap[item.name];
         chk.className = 'card-checkbox';
-        
+
         if (!chk.checked) card.classList.add('disabled');
 
         chk.onchange = (e) => {
             const isChecked = e.target.checked;
             targetMap[item.name] = isChecked;
-            
+
             if (isChecked) card.classList.remove('disabled');
             else card.classList.add('disabled');
-            
+
             resetRemainingPool();
         };
 
@@ -848,21 +933,58 @@
         return card;
     }
 
-    function bulkToggle(type) {
-        const dataMap = (currentMode === "muscle") ? active_maps_muscle[type] : active_maps_bone.bone;
-        const items = (type === 'upper') ? upper_box : (type === 'lower') ? lower_box : (type === 'trunk') ? trunk_box : bone_box;
-        const gridId = (currentMode === "muscle") ? `${type}-card-grid` : 'bone-card-grid';
-        
-        const grid = document.getElementById(gridId);
-        const cards = grid.querySelectorAll('.muscle-card');
-
-        const anyChecked = Array.from(grid.querySelectorAll('.card-checkbox')).some(c => c.checked);
-        const nextState = !anyChecked;
+    // フィルタリング処理
+    function filterCards() {
+        const keyword = document.getElementById('search-keyword').value.toLowerCase();
+        const nerve = document.getElementById('search-nerve').value;
+        const action = document.getElementById('search-action').value;
+        const cards = document.querySelectorAll('.muscle-card');
 
         cards.forEach(card => {
+            const name = card.getAttribute('data-name').toLowerCase();
+            const memo = card.getAttribute('data-memo').toLowerCase();
+
+            // 1. キーワードマッチング
+            const matchesKeyword = name.includes(keyword) || memo.includes(keyword);
+            
+            // 2. 神経マッチング
+            let matchesNerve = true;
+            if (currentMode === 'muscle' && nerve) {
+                matchesNerve = memo.includes(nerve.toLowerCase());
+            }
+
+            // 3. 作用マッチング
+            let matchesAction = true;
+            if (currentMode === 'muscle' && action) {
+                matchesAction = memo.includes(action.toLowerCase());
+            }
+
+            // すべての条件を満たしていれば表示
+            if (matchesKeyword && matchesNerve && matchesAction) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // 見えているカードだけを一括操作する
+    function bulkToggle(type) {
+        const dataMap = (currentMode === "muscle") ? active_maps_muscle[type] : active_maps_bone.bone;
+        const gridId = (currentMode === "muscle") ? `${type}-card-grid` : 'bone-card-grid';
+
+        const grid = document.getElementById(gridId);
+        const visibleCards = Array.from(grid.querySelectorAll('.muscle-card')).filter(card => card.style.display !== 'none');
+
+        if (visibleCards.length === 0) return;
+
+        const anyChecked = visibleCards.some(card => card.querySelector('.card-checkbox').checked);
+        const nextState = !anyChecked;
+
+        visibleCards.forEach(card => {
             const chk = card.querySelector('.card-checkbox');
             const name = card.querySelector('.card-click-area').innerText;
-            
+
             if (chk) chk.checked = nextState;
             dataMap[name] = nextState;
 
@@ -876,9 +998,9 @@
     function toggleCardSection() {
         const section = document.getElementById('card-section');
         const toggleBtn = document.getElementById('toggle-list-btn');
-        
+
         section.classList.toggle('show');
-        
+
         if (section.classList.contains('show')) {
             toggleBtn.innerText = "カード一覧を閉じる";
             section.scrollIntoView({ behavior: 'smooth' });
