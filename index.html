@@ -728,16 +728,17 @@
 
             if (!isTestMode) {
                 let availableCategories = [...activeCategories];
-
-                if (availableCategories.length < 2) {
-                    alert("部位の重複を防ぐため、上肢・下肢・体幹のうち【最低2つ以上のカテゴリ】にチェックを入れてください。");
-                    return;
-                }
-
                 let chosenCategories = [];
-                for (let i = 0; i < boxCount; i++) {
-                    const catIdx = Math.floor(Math.random() * availableCategories.length);
-                    chosenCategories.push(availableCategories.splice(catIdx, 1)[0]);
+
+                // 1つのカテゴリしか選ばれていない場合は、同じカテゴリを2つのボックスに割り当てる
+                if (availableCategories.length === 1) {
+                    chosenCategories = [availableCategories[0], availableCategories[0]];
+                } else {
+                    // 2つ以上選ばれている場合は、従来通り重複しないように割り当てる
+                    for (let i = 0; i < boxCount; i++) {
+                        const catIdx = Math.floor(Math.random() * availableCategories.length);
+                        chosenCategories.push(availableCategories.splice(catIdx, 1)[0]);
+                    }
                 }
 
                 for (let i = 1; i <= boxCount; i++) {
@@ -902,7 +903,7 @@
         const card = document.createElement('div');
         card.className = `muscle-card ${typeClass}-card`;
         card.id = `card-${typeClass}-${item.name}`;
-        
+
         card.setAttribute('data-name', item.name);
         card.setAttribute('data-memo', item.memo || '');
 
@@ -946,7 +947,7 @@
 
             // 1. キーワードマッチング
             const matchesKeyword = name.includes(keyword) || memo.includes(keyword);
-            
+
             // 2. 神経マッチング
             let matchesNerve = true;
             if (currentMode === 'muscle' && nerve) {
